@@ -2,3 +2,9 @@ euchre.live
 ===========
 
 For my family <3
+
+Installation
+------------
+First, get a working Perl and cpanm.
+
+  $ cpanm --installdeps .

@@ -4,7 +4,11 @@
 #    Those who Euchre Gloat never Win
 #		~ Andy Karle
 use Mojolicious::Lite;
+use FindBin;
+use lib "$FindBin::RealBin/lib";
 
-get '/' => { text => 'Letsigo!' };
+use Euchre::Game;
+
+get '/' => { text => play() };
 
 app->start;

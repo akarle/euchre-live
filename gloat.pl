@@ -9,6 +9,6 @@ use lib "$FindBin::RealBin/lib";
 
 use Euchre::Game;
 
-get '/' => { text => play() };
+get '/' => { text => deal() };
 
 app->start;

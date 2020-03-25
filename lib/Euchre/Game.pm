@@ -76,6 +76,7 @@ sub trick_winner {
 
 # Given # tricks per player, who won? What score?
 # Use X to indicate sat-out. $callers either 0 or 1
+# Returns idx of team, points to give
 sub score_round {
     my ($callers, @tricks) = @_;
 
@@ -90,25 +91,23 @@ sub score_round {
         }
     }
     
-    my @points = (0, 0);
-    $DB::single = 1;
     if ($totals[$callers] == 5) {
         if ($loner) {
             # Hot diggity dog!
-            $points[$callers] = 4;
+            return $callers, 4;
         } else {
             # Respectable
-            $points[$callers] = 2;
+            return $callers, 2;
         }
     } elsif($totals[$callers] > $totals[$setters]) {
         # Made your point...
-        $points[$callers] = 1;
+        return $callers, 1;
     } else {
         # We've been Euched, Bill!
-        $points[$setters] = 2;
+        return $setters, 2;
     }
 
-    return \@points;
+    die 'assert';
 }
 
 1;

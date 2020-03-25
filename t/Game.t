@@ -48,16 +48,17 @@ sub test_trick_winner {
 
 sub test_score_round {
     my @tests = (
-        [[0, 1,2,1,1], [0, 2], 'Euched!'],
-        [[1, 2,1,1,1], [2, 0], 'Euched again!'],
-        [[1, 2,3,0,0], [0,1], 'Made your point'],
-        [[1, 0,3,0,2], [0,2], 'Got em all!'],
-        [[0, 5,0,'X',0], [4,0], 'Loneeeer!'],
-        [[0, 3,1,'X',1], [1,0], 'Failed loner'],
+        [[0, 1,2,1,1], [1, 2], 'Euched!'],
+        [[1, 2,1,1,1], [0, 2], 'Euched again!'],
+        [[1, 2,3,0,0], [1,1], 'Made your point'],
+        [[1, 0,3,0,2], [1,2], 'Got em all!'],
+        [[0, 5,0,'X',0], [0,4], 'Loneeeer!'],
+        [[0, 3,1,'X',1], [0,1], 'Failed loner'],
     );
 
     for my $t (@tests) {
-        is_deeply(score_round(@{$t->[0]}), $t->[1], $t->[2]);
+        my ($winners, $points) = score_round(@{$t->[0]});
+        is_deeply([$winners, $points], $t->[1], $t->[2]);
     }
 }
 

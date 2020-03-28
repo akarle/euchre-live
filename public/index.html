@@ -1,1 +1,16 @@
-<h1>Hello, Chris</h1>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Euchre Live!!</title>
+</head>
+<body>
+  <div id="content"></div>
+  <script>
+    var ws = new WebSocket('ws://localhost:3000/play');
+    ws.onmessage = function (event) { document.body.innerHTML += event.data };
+  </script>
+ <h1>Hello, Chris</h1>
+
+</body>
+</html>

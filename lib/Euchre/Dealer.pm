@@ -147,7 +147,13 @@ sub broadcast_gamestate {
     # Get all players in the game
     my @all_ws = map { $PLAYERS{$_}->{ws} } @{$game->{players}};
 
-    my $json = encode_json({ msg_type => 'game_state', game => $game });
+    my @names = map { $PLAYERS{$_}->{name} } @{$game->{players}};
+    my $msg = {
+        %$game,
+        players => \@names,
+    };
+
+    my $json = encode_json({ msg_type => 'game_state', game => $msg });
     for my $ws (@all_ws) {
         $ws->send({ json => $json});
     }

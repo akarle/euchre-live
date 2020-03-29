@@ -28,6 +28,7 @@ our @EXPORT = qw(
 #   %GAMES -- each game is a hash with
 #       {
 #           players => [ p1, p2, p3, p4 ], # ws ids in %PLAYERS
+#           spectators => [ pa, pb, ... ], # for "lobby" period of picking seat
 #           tricks =>  [ p1, p2, p3, p4 ], # ints per player
 #           dealer => 0-3,
 #           turn => 0-3,
@@ -91,6 +92,7 @@ sub handle_msg {
     my ($cid, $msg) = @_;
 
     my %dispatch = (
+        # Game management endpoints
         join_game   => \&join_game,
     );
 
@@ -111,7 +113,9 @@ sub join_game {
     # init game if needed
     if (!exists $GAMES{$id}) {
         $GAMES{$id} = {
+            id => $id,
             players => [],
+            spectators => [],
             turn => -1,
             dealer => -1,
             trump => -1,
@@ -123,15 +127,15 @@ sub join_game {
     }
 
     # Handle full game case
-    my $numPlayers = scalar @{$GAMES{$id}->{players}};
-    if ($numPlayers >= 4) {
-        send_error($cid, { msg => 'Already 4 players' });
+    my $num_players = scalar @{$GAMES{$id}->{players}};
+    if ($num_players >= 4) {
+        send_error($cid, 'Already 4 players');
     }
 
     # Add player to Game and cross-link in %PLAYERS for handle_msg
+    # All players start as spectators and have to take a seat explicitly
     $PLAYERS{$cid}->{name} = $msg->{player_name};
-    $PLAYERS{$cid}->{seat} = $numPlayers; # no +1, idx by 0;
-    push @{$GAMES{$id}->{players}}, $cid;
+    push @{$GAMES{$id}->{spectators}}, $cid;
 
     # XXX: for fast prototyping we just broadcast gamestate
     broadcast_gamestate($GAMES{$id});
@@ -145,12 +149,16 @@ sub broadcast_gamestate {
     my ($game) = @_;
 
     # Get all players in the game
-    my @all_ws = map { $PLAYERS{$_}->{ws} } @{$game->{players}};
+    my @all_ws = map { $PLAYERS{$_}->{ws} }
+        (@{$game->{players}}, @{$game->{spectators}});
 
-    my @names = map { $PLAYERS{$_}->{name} } @{$game->{players}};
+    # Translate to human readable names for clients
+    my @pnames = map { $PLAYERS{$_}->{name} } @{$game->{players}};
+    my @snames = map { $PLAYERS{$_}->{name} } @{$game->{spectators}};
     my $msg = {
         %$game,
-        players => \@names,
+        players => \@pnames,
+        spectators => \@snames,
     };
 
     my $json = encode_json({ msg_type => 'game_state', game => $msg });
@@ -163,7 +171,7 @@ sub broadcast_gamestate {
 sub send_error {
     my ($cid, $msg) = @_;
     my $ws = $PLAYERS{$cid}->{ws};
-    $msg->{msg_type} = 'error';
+    my $json = { msg_type => 'error', msg => $msg };;
     $ws->send({ json => encode_json($msg) });
 }
 

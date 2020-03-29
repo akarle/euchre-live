@@ -18,4 +18,6 @@ Running
 -------
 Run the development server as so:
 
-   $ ./gloat.pl daemon
+```sh
+$ MOJO_INACTIVITY_TIMEOUT=500 morbo gloat.pl
+```

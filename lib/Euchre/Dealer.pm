@@ -196,7 +196,7 @@ sub broadcast_gamestate {
                  (@{$game->{players}}, @{$game->{spectators}});
 
     # Translate to human readable names for clients
-    my @pnames = map { defined ? $PLAYERS{$_}->{name} : 'Empty' } @{$game->{players}};
+    my @pnames = map { defined($_) ? $PLAYERS{$_}->{name} : 'Empty' } @{$game->{players}};
     my @snames = map { $PLAYERS{$_}->{name} } @{$game->{spectators}};
     my $msg = {
         %$game,

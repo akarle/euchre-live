@@ -94,6 +94,8 @@ sub handle_msg {
     my %dispatch = (
         # Game management endpoints
         join_game   => \&join_game,
+        take_seat   => \&take_seat,
+        stand_up    => \&stand_up,
     );
 
     if (exists $dispatch{$msg->{action}}) {
@@ -114,7 +116,7 @@ sub join_game {
     if (!exists $GAMES{$id}) {
         $GAMES{$id} = {
             id => $id,
-            players => [],
+            players => [undef, undef, undef, undef],
             spectators => [],
             turn => -1,
             dealer => -1,
@@ -127,7 +129,7 @@ sub join_game {
     }
 
     # Handle full game case
-    my $num_players = scalar @{$GAMES{$id}->{players}};
+    my $num_players = scalar grep { defined } @{$GAMES{$id}->{players}};
     if ($num_players >= 4) {
         send_error($cid, 'Already 4 players');
     }
@@ -135,10 +137,50 @@ sub join_game {
     # Add player to Game and cross-link in %PLAYERS for handle_msg
     # All players start as spectators and have to take a seat explicitly
     $PLAYERS{$cid}->{name} = $msg->{player_name};
+    $PLAYERS{$cid}->{game_id} = $id;
     push @{$GAMES{$id}->{spectators}}, $cid;
 
     # XXX: for fast prototyping we just broadcast gamestate
     broadcast_gamestate($GAMES{$id});
+}
+
+# seat
+sub take_seat {
+    my ($cid, $msg) = @_;
+
+    my $game = $GAMES{$PLAYERS{$cid}->{game_id}};
+    my $seat = $msg->{seat};
+
+    if (defined $game->{players}->[$seat]) {
+        send_error($cid, 'Seat is taken');
+    } else {
+        # Move from standing to sitting
+        $game->{players}->[$seat] = $cid;
+        $PLAYERS{$cid}->{seat} = $seat;
+        for (my $i = 0; $i < @{$game->{spectators}}; $i++) {
+            if ($game->{spectators}->[$i] eq $cid) {
+                splice(@{$game->{spectators}}, $i, 1);
+            }
+        }
+    }
+    broadcast_gamestate($game);
+}
+
+sub stand_up {
+    my ($cid) = @_;
+
+    my $game = $GAMES{$PLAYERS{$cid}->{game_id}};
+    my $seat = $PLAYERS{$cid}->{seat};
+
+    if (!defined $seat) {
+        send_error($cid, 'Already standing!');
+    } else {
+        # Move from sitting to standing
+        push @{$game->{spectators}}, $cid;
+        $game->{players}->[$seat] = undef;
+        broadcast_gamestate($game);
+    }
+
 }
 
 
@@ -150,10 +192,11 @@ sub broadcast_gamestate {
 
     # Get all players in the game
     my @all_ws = map { $PLAYERS{$_}->{ws} }
-        (@{$game->{players}}, @{$game->{spectators}});
+                 grep { defined }
+                 (@{$game->{players}}, @{$game->{spectators}});
 
     # Translate to human readable names for clients
-    my @pnames = map { $PLAYERS{$_}->{name} } @{$game->{players}};
+    my @pnames = map { defined ? $PLAYERS{$_}->{name} : 'Empty' } @{$game->{players}};
     my @snames = map { $PLAYERS{$_}->{name} } @{$game->{spectators}};
     my $msg = {
         %$game,

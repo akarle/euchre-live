@@ -11,10 +11,15 @@
     ws.onmessage = function (event) { 
       msg = JSON.parse(JSON.parse(event.data)); // double parsed?
       console.log(msg)
-      gameState = '<br>Game:          ' + msg.game.id + '<br>' +
-        'Players:       ' + msg.game.players + '<br>' +
-        'Spectators:    ' + msg.game.spectators + '<br>'
-      document.getElementById('game').innerHTML = gameState
+
+      if (msg.msg_type === 'game_state') {
+        gameState = '<br>Game:          ' + msg.game.id + '<br>' +
+          'Players:       ' + msg.game.players + '<br>' +
+          'Spectators:    ' + msg.game.spectators + '<br>'
+        document.getElementById('game').innerHTML = gameState
+      } else if (msg.msg_type === 'error') {
+        document.getElementById('error').innerHTML += msg.msg + '<br>'
+      }
     };
 
     function joinGame() {
@@ -45,7 +50,9 @@
  <input type="number" id="seat_no">
  <button onclick="sit()">Sit</button>
 
- <div id="game">
- </div>
+ <br><br>
+ <div id="game">Not in a game</div>
+ <br><br>
+ <div id="error" style="color:red"> </div>
 </body>
 </html>

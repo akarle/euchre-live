@@ -129,19 +129,18 @@ sub join_game {
     }
 
     # Handle full game case
-    my $num_players = scalar grep { defined } @{$GAMES{$id}->{players}};
-    if ($num_players >= 4) {
+    if (num_players($GAMES{$id}) >= 4) {
         send_error($cid, 'Already 4 players');
+    } else {
+        # Add player to Game and cross-link in %PLAYERS for handle_msg
+        # All players start as spectators and have to take a seat explicitly
+        $PLAYERS{$cid}->{name} = $msg->{player_name};
+        $PLAYERS{$cid}->{game_id} = $id;
+        push @{$GAMES{$id}->{spectators}}, $cid;
+
+        # XXX: for fast prototyping we just broadcast gamestate
+        broadcast_gamestate($GAMES{$id});
     }
-
-    # Add player to Game and cross-link in %PLAYERS for handle_msg
-    # All players start as spectators and have to take a seat explicitly
-    $PLAYERS{$cid}->{name} = $msg->{player_name};
-    $PLAYERS{$cid}->{game_id} = $id;
-    push @{$GAMES{$id}->{spectators}}, $cid;
-
-    # XXX: for fast prototyping we just broadcast gamestate
-    broadcast_gamestate($GAMES{$id});
 }
 
 # seat
@@ -183,6 +182,11 @@ sub stand_up {
 
 }
 
+
+sub num_players {
+    my ($gid) = @_;
+    return scalar grep { defined } @{$GAMES{$gid}->{players}}
+}
 
 # XXX: The most simplest (bulkiest) message we can send is to just
 # broadcast the gamestate to all clients. This will be our temporary

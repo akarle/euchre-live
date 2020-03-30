@@ -36,6 +36,7 @@ our @EXPORT = qw(
 #           caller => 0-3,
 #           table => [ c1, c2, c3, c4 ], # up to 4 cards
 #           score => [X, Y],
+#           in_progress => 0/1,
 #       }
 #
 #   We decided the players would keep track of their own hands
@@ -96,6 +97,7 @@ sub handle_msg {
         join_game   => \&join_game,
         take_seat   => \&take_seat,
         stand_up    => \&stand_up,
+        start_game  => \&start_game,
     );
 
     if (exists $dispatch{$msg->{action}}) {
@@ -125,11 +127,12 @@ sub join_game {
             table => [],
             callers => -1,
             score => [0, 0],
+            in_progress => 0,
         };
     }
 
     # Handle full game case
-    if (num_players($GAMES{$id}) >= 4) {
+    if ($GAMES{$id}->{in_progress}) {
         send_error($cid, 'Already 4 players');
     } else {
         # Add player to Game and cross-link in %PLAYERS for handle_msg
@@ -182,6 +185,19 @@ sub stand_up {
 
 }
 
+sub start_game {
+    my ($cid) = @_;
+    my $game = $GAMES{$PLAYERS{$cid}->{game_id}};
+
+    if (num_players($game->{id}) < 4) {
+        send_error($cid, "Can't start with empty seats!");
+    } else {
+        $game->{in_progress} = 1;
+        # TODO: kick spectators out?
+        # TODO: deal!
+        broadcast_gamestate($game);
+    }
+}
 
 sub num_players {
     my ($gid) = @_;

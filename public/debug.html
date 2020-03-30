@@ -11,9 +11,10 @@
     ws.onmessage = function (event) { 
       msg = JSON.parse(JSON.parse(event.data)); // double parsed?
       console.log(msg)
-      document.body.innerHTML += '<br>Game:          ' + msg.game.id + '<br>'
-      document.body.innerHTML += 'Players:       ' + msg.game.players + '<br>'
-      document.body.innerHTML += 'Spectators:    ' + msg.game.spectators + '<br>'
+      gameState = '<br>Game:          ' + msg.game.id + '<br>' +
+        'Players:       ' + msg.game.players + '<br>' +
+        'Spectators:    ' + msg.game.spectators + '<br>'
+      document.getElementById('game').innerHTML = gameState
     };
 
     function joinGame() {
@@ -43,5 +44,8 @@
  <label for="seat_no">Seat:</label>
  <input type="number" id="seat_no">
  <button onclick="sit()">Sit</button>
+
+ <div id="game">
+ </div>
 </body>
 </html>

@@ -215,7 +215,7 @@ sub send_error {
     my ($cid, $msg) = @_;
     my $ws = $PLAYERS{$cid}->{ws};
     my $json = { msg_type => 'error', msg => $msg };;
-    $ws->send({ json => encode_json($msg) });
+    $ws->send({ json => encode_json($json) });
 }
 
 1;

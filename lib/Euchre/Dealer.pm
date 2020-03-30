@@ -47,7 +47,7 @@ our @EXPORT = qw(
 #   websocket id
 #
 #       {
-#           game_id => key in %GAMES,
+#           game => reference to current game object,
 #           name => username,
 #           seat => 0-3,
 #           ws   => websocket obj
@@ -138,7 +138,7 @@ sub join_game {
         # Add player to Game and cross-link in %PLAYERS for handle_msg
         # All players start as spectators and have to take a seat explicitly
         $PLAYERS{$cid}->{name} = $msg->{player_name};
-        $PLAYERS{$cid}->{game_id} = $id;
+        $PLAYERS{$cid}->{game} = $GAMES{$id};
         push @{$GAMES{$id}->{spectators}}, $cid;
 
         # XXX: for fast prototyping we just broadcast gamestate
@@ -150,7 +150,7 @@ sub join_game {
 sub take_seat {
     my ($cid, $msg) = @_;
 
-    my $game = $GAMES{$PLAYERS{$cid}->{game_id}};
+    my $game = $PLAYERS{$cid}->{game};
     my $seat = $msg->{seat};
 
     if (defined $game->{players}->[$seat]) {
@@ -171,7 +171,7 @@ sub take_seat {
 sub stand_up {
     my ($cid) = @_;
 
-    my $game = $GAMES{$PLAYERS{$cid}->{game_id}};
+    my $game = $PLAYERS{$cid}->{game};
     my $seat = $PLAYERS{$cid}->{seat};
 
     if (!defined $seat) {
@@ -187,7 +187,7 @@ sub stand_up {
 
 sub start_game {
     my ($cid) = @_;
-    my $game = $GAMES{$PLAYERS{$cid}->{game_id}};
+    my $game = $PLAYERS{$cid}->{game};
 
     if (num_players($game->{id}) < 4) {
         send_error($cid, "Can't start with empty seats!");

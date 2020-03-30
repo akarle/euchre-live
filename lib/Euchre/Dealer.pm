@@ -47,6 +47,7 @@ our @EXPORT = qw(
 #   websocket id
 #
 #       {
+#           id   => client id (key in %PLAYERS)
 #           game => reference to current game object,
 #           name => username,
 #           seat => 0-3,
@@ -67,7 +68,7 @@ our %PLAYERS;
 sub register_player {
     my ($tx) = @_;
     my $id = ''.$tx;
-    $PLAYERS{$id} = { ws => $tx };
+    $PLAYERS{$id} = { id => $id, ws => $tx };
     print "Player $id has joined the server\n";
     if ($ENV{DEBUG}) {
         use Data::Dumper;
@@ -101,7 +102,7 @@ sub handle_msg {
     );
 
     if (exists $dispatch{$msg->{action}}) {
-        $dispatch{$msg->{action}}->($cid, $msg);
+        $dispatch{$msg->{action}}->($PLAYERS{$cid}, $msg);
     } else {
         die "Unknown API action: $msg->{action}";
     }
@@ -110,7 +111,7 @@ sub handle_msg {
 # player_name
 # game_id
 sub join_game {
-    my ($cid, $msg) = @_;
+    my ($p, $msg) = @_;
 
     my $id = $msg->{game_id};
 
@@ -133,13 +134,13 @@ sub join_game {
 
     # Handle full game case
     if ($GAMES{$id}->{in_progress}) {
-        send_error($cid, 'Already 4 players');
+        send_error($p, 'Already 4 players');
     } else {
         # Add player to Game and cross-link in %PLAYERS for handle_msg
         # All players start as spectators and have to take a seat explicitly
-        $PLAYERS{$cid}->{name} = $msg->{player_name};
-        $PLAYERS{$cid}->{game} = $GAMES{$id};
-        push @{$GAMES{$id}->{spectators}}, $cid;
+        $p->{name} = $msg->{player_name};
+        $p->{game} = $GAMES{$id};
+        push @{$GAMES{$id}->{spectators}}, $p->{id};
 
         # XXX: for fast prototyping we just broadcast gamestate
         broadcast_gamestate($GAMES{$id});
@@ -148,19 +149,19 @@ sub join_game {
 
 # seat
 sub take_seat {
-    my ($cid, $msg) = @_;
+    my ($p, $msg) = @_;
 
-    my $game = $PLAYERS{$cid}->{game};
+    my $game = $p->{game};
     my $seat = $msg->{seat};
 
     if (defined $game->{players}->[$seat]) {
-        send_error($cid, 'Seat is taken');
+        send_error($p, 'Seat is taken');
     } else {
         # Move from standing to sitting
-        $game->{players}->[$seat] = $cid;
-        $PLAYERS{$cid}->{seat} = $seat;
+        $game->{players}->[$seat] = $p->{id};
+        $p->{seat} = $seat;
         for (my $i = 0; $i < @{$game->{spectators}}; $i++) {
-            if ($game->{spectators}->[$i] eq $cid) {
+            if ($game->{spectators}->[$i] eq $p->{id}) {
                 splice(@{$game->{spectators}}, $i, 1);
             }
         }
@@ -169,16 +170,16 @@ sub take_seat {
 }
 
 sub stand_up {
-    my ($cid) = @_;
+    my ($p) = @_;
 
-    my $game = $PLAYERS{$cid}->{game};
-    my $seat = $PLAYERS{$cid}->{seat};
+    my $game = $p->{game};
+    my $seat = $p->{seat};
 
     if (!defined $seat) {
-        send_error($cid, 'Already standing!');
+        send_error($p, 'Already standing!');
     } else {
         # Move from sitting to standing
-        push @{$game->{spectators}}, $cid;
+        push @{$game->{spectators}}, $p->{id};
         $game->{players}->[$seat] = undef;
         broadcast_gamestate($game);
     }
@@ -186,11 +187,11 @@ sub stand_up {
 }
 
 sub start_game {
-    my ($cid) = @_;
-    my $game = $PLAYERS{$cid}->{game};
+    my ($p) = @_;
+    my $game = $p->{game};
 
     if (num_players($game->{id}) < 4) {
-        send_error($cid, "Can't start with empty seats!");
+        send_error($p, "Can't start with empty seats!");
     } else {
         $game->{in_progress} = 1;
         # TODO: kick spectators out?
@@ -232,10 +233,10 @@ sub broadcast_gamestate {
 
 
 sub send_error {
-    my ($cid, $msg) = @_;
-    my $ws = $PLAYERS{$cid}->{ws};
-    my $json = { msg_type => 'error', msg => $msg };;
-    $ws->send({ json => encode_json($json) });
+    my ($p, $msg) = @_;
+    my $ws = $p->{ws};
+    my $json = encode_json({ msg_type => 'error', msg => $msg });
+    $ws->send({ json => $json});
 }
 
 1;

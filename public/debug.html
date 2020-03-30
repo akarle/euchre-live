@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Euchre Live!!</title>
+</head>
+<body>
+  <div id="content"></div>
+  <script>
+    var ws = new WebSocket('ws://localhost:3000/play');
+    ws.onmessage = function (event) { 
+      msg = JSON.parse(JSON.parse(event.data)); // double parsed?
+      console.log(msg)
+      document.body.innerHTML += '<br>Game:          ' + msg.game.id + '<br>'
+      document.body.innerHTML += 'Players:       ' + msg.game.players + '<br>'
+      document.body.innerHTML += 'Spectators:    ' + msg.game.spectators + '<br>'
+    };
+
+    function joinGame() {
+      uname = document.getElementById('username').value;
+      gname = document.getElementById('gamename').value;
+      console.log('U: ' + uname + ' G: ' + gname);
+      ws.send(JSON.stringify({action:'join_game', player_name: uname, game_id: gname}))
+    }
+    function sit() {
+      seat = document.getElementById('seat_no').value;
+      ws.send(JSON.stringify({action:'take_seat', seat: seat}))
+    }
+    function stand() {
+      ws.send(JSON.stringify({action:'stand_up'}))
+    }
+  </script>
+ <h1>Hello, World</h1>
+
+ <label for="username">Username:</label>
+ <input type="text" id="username">
+ <label for="gamename">Game:</label>
+ <input type="text" id="gamename">
+ <button onclick="joinGame()">Join Game</button>
+ <br>
+ <button onclick="stand()">Stand</button>
+ <br>
+ <label for="seat_no">Seat:</label>
+ <input type="number" id="seat_no">
+ <button onclick="sit()">Sit</button>
+</body>
+</html>

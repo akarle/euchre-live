@@ -10,9 +10,16 @@ use lib "$FindBin::RealBin/lib";
 
 use Euchre::Dealer;
 
+plugin Webpack => {process => [qw(js css)]};
+
 get '/' => sub {
     my $c = shift;
     $c->reply->static('index.html');
+};
+
+get '/debug' => sub {
+    my $c = shift;
+    $c->reply->static('debug.html');
 };
 
 websocket '/play' => sub {

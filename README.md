@@ -16,8 +16,6 @@ First, get a working Perl and cpanm.
 
 Running
 -------
-Run the development server as so:
-
 ```sh
-$ MOJO_INACTIVITY_TIMEOUT=500 mojo webpack ./gloat.pl
+$ ./run.sh
 ```

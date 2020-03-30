@@ -33,7 +33,7 @@ our @EXPORT = qw(
 #           dealer => 0-3,
 #           turn => 0-3,
 #           trump => 0-3,
-#           callers => 0-3, # player XXX
+#           caller => 0-3,
 #           table => [ c1, c2, c3, c4 ], # up to 4 cards
 #           score => [X, Y],
 #       }

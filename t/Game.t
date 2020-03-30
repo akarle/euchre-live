@@ -50,10 +50,10 @@ sub test_score_round {
     my @tests = (
         [[0, 1,2,1,1], [1, 2], 'Euched!'],
         [[1, 2,1,1,1], [0, 2], 'Euched again!'],
-        [[1, 2,3,0,0], [1,1], 'Made your point'],
+        [[3, 2,3,0,0], [1,1], 'Made your point'],
         [[1, 0,3,0,2], [1,2], 'Got em all!'],
         [[0, 5,0,'X',0], [0,4], 'Loneeeer!'],
-        [[0, 3,1,'X',1], [0,1], 'Failed loner'],
+        [[2, 3,1,'X',1], [0,1], 'Failed loner'],
     );
 
     for my $t (@tests) {

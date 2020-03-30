@@ -75,11 +75,12 @@ sub trick_winner {
 }
 
 # Given # tricks per player, who won? What score?
-# Use X to indicate sat-out. $callers either 0 or 1
+# Use X to indicate sat-out. $caller is a seat_no
 # Returns idx of team, points to give
 sub score_round {
-    my ($callers, @tricks) = @_;
+    my ($caller, @tricks) = @_;
 
+    my $callers = $caller % 2;
     my $setters = 1 - $callers;
     my $loner = 0;
     my @totals;

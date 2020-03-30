@@ -27,7 +27,7 @@ our @EXPORT = qw(
 #
 #   %GAMES -- each game is a hash with
 #       {
-#           players => [ p1, p2, p3, p4 ], # ws ids in %PLAYERS
+#           players => [ p1, p2, p3, p4 ], # player objs
 #           spectators => [ pa, pb, ... ], # for "lobby" period of picking seat
 #           tricks =>  [ p1, p2, p3, p4 ], # ints per player
 #           dealer => 0-3,
@@ -136,11 +136,11 @@ sub join_game {
     if ($GAMES{$id}->{in_progress}) {
         send_error($p, 'Already 4 players');
     } else {
-        # Add player to Game and cross-link in %PLAYERS for handle_msg
+        # Add player object to Game
         # All players start as spectators and have to take a seat explicitly
         $p->{name} = $msg->{player_name};
         $p->{game} = $GAMES{$id};
-        push @{$GAMES{$id}->{spectators}}, $p->{id};
+        push @{$GAMES{$id}->{spectators}}, $p;
 
         # XXX: for fast prototyping we just broadcast gamestate
         broadcast_gamestate($GAMES{$id});
@@ -158,10 +158,10 @@ sub take_seat {
         send_error($p, 'Seat is taken');
     } else {
         # Move from standing to sitting
-        $game->{players}->[$seat] = $p->{id};
+        $game->{players}->[$seat] = $p;
         $p->{seat} = $seat;
         for (my $i = 0; $i < @{$game->{spectators}}; $i++) {
-            if ($game->{spectators}->[$i] eq $p->{id}) {
+            if ($game->{spectators}->[$i]->{id} eq $p->{id}) {
                 splice(@{$game->{spectators}}, $i, 1);
             }
         }
@@ -179,7 +179,7 @@ sub stand_up {
         send_error($p, 'Already standing!');
     } else {
         # Move from sitting to standing
-        push @{$game->{spectators}}, $p->{id};
+        push @{$game->{spectators}}, $p;
         $game->{players}->[$seat] = undef;
         broadcast_gamestate($game);
     }
@@ -212,13 +212,13 @@ sub broadcast_gamestate {
     my ($game) = @_;
 
     # Get all players in the game
-    my @all_ws = map { $PLAYERS{$_}->{ws} }
+    my @all_ws = map { $_->{ws} }
                  grep { defined }
                  (@{$game->{players}}, @{$game->{spectators}});
 
     # Translate to human readable names for clients
-    my @pnames = map { defined($_) ? $PLAYERS{$_}->{name} : 'Empty' } @{$game->{players}};
-    my @snames = map { $PLAYERS{$_}->{name} } @{$game->{spectators}};
+    my @pnames = map { defined($_) ? $_->{name} : 'Empty' } @{$game->{players}};
+    my @snames = map { $_->{name} } @{$game->{spectators}};
     my $msg = {
         %$game,
         players => \@pnames,

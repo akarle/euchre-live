@@ -10,9 +10,12 @@ Disappointed with the state of the online options, we decided to make our own.
 
 Installation
 ------------
-First, get a working Perl and cpanm.
+Install `npm`, `cpanminus`, and Perl. Then:
 
-  $ cpanm --installdeps .
+```sh
+$ npm i
+$ cpanm --installdeps .
+```
 
 Running
 -------

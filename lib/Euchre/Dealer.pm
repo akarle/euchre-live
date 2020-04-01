@@ -198,11 +198,40 @@ sub start_game {
         # TODO: deal!
         broadcast_gamestate($game);
     }
+    start_new_round($game);
 }
 
 sub num_players {
     my ($gid) = @_;
     return scalar grep { defined } @{$GAMES{$gid}->{players}}
+}
+
+sub start_new_round {
+    my ($game) = @_;
+
+    deal_players_hands($game);
+
+    # TODO: vote trump
+    # TODO: start accepting play_card's
+}
+
+# Hands need to be sent as private messages. For now, we don't
+# keep them in the game state to simplify server logic
+sub deal_players_hands {
+    my ($game) = @_;
+
+    my ($handsA, $kiddeyA) = deal();
+    my $nominee = cid_to_name(shift @$kiddeyA);
+    for my $p (@{$game->{players}}) {
+        my @hand = map { cid_to_name($_) } @{shift @$handsA};
+        $p->{ws}->send({ json =>
+            encode_json({
+                msg_type => 'deal',
+                hand => \@hand,
+                trump_nominee => $nominee,
+            })
+        });
+    }
 }
 
 # XXX: The most simplest (bulkiest) message we can send is to just

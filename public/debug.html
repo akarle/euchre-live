@@ -20,6 +20,9 @@
         document.getElementById('game').innerHTML = gameState
       } else if (msg.msg_type === 'error') {
         document.getElementById('error').innerHTML += msg.msg + '<br>'
+      } else if (msg.msg_type === 'deal') {
+        document.getElementById('hand').innerHTML = 'HAND: ' + msg.hand + '<br>'
+        document.getElementById('nominee').innerHTML = 'Trump Nominee: ' + msg.trump_nominee + '<br>'
       }
     };
 
@@ -58,6 +61,9 @@
 
  <br><br>
  <div id="game">Not in a game</div>
+ <br><br>
+ <div id="hand">No cards in hand</div>
+ <div id="nominee"></div>
  <br><br>
  <div id="error" style="color:red"> </div>
 </body>

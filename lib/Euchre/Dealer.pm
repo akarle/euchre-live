@@ -5,7 +5,6 @@ use warnings;
 package Euchre::Dealer;
 
 use List::Util;
-use Mojo::JSON qw(encode_json);
 
 use Euchre::Card;
 use Euchre::Game;
@@ -225,11 +224,11 @@ sub deal_players_hands {
     for my $p (@{$game->{players}}) {
         my @hand = map { cid_to_name($_) } @{shift @$handsA};
         $p->{ws}->send({ json =>
-            encode_json({
+            {
                 msg_type => 'deal',
                 hand => \@hand,
                 trump_nominee => $nominee,
-            })
+            }
         });
     }
 }
@@ -254,7 +253,7 @@ sub broadcast_gamestate {
         spectators => \@snames,
     };
 
-    my $json = encode_json({ msg_type => 'game_state', game => $msg });
+    my $json = { msg_type => 'game_state', game => $msg };
     for my $ws (@all_ws) {
         $ws->send({ json => $json});
     }
@@ -264,7 +263,7 @@ sub broadcast_gamestate {
 sub send_error {
     my ($p, $msg) = @_;
     my $ws = $p->{ws};
-    my $json = encode_json({ msg_type => 'error', msg => $msg });
+    my $json = { msg_type => 'error', msg => $msg };
     $ws->send({ json => $json});
 }
 

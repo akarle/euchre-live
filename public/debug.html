@@ -9,7 +9,7 @@
   <script>
     var ws = new WebSocket('ws://localhost:3000/play');
     ws.onmessage = function (event) { 
-      msg = JSON.parse(JSON.parse(event.data)); // double parsed?
+      msg = JSON.parse(event.data);
       console.log(msg)
 
       if (msg.msg_type === 'game_state') {

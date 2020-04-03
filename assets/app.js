@@ -1,4 +1,4 @@
-import './app.css';
+import './app.scss';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Lobby from './components/Lobby';
@@ -35,7 +35,6 @@ class App extends React.Component {
         const {showTable, playerName, tableName} = this.state;
         return (
             <div id="top-app">
-                <h3>the app page</h3>
                 {!showTable && (
                     <Lobby
                         setName={this.setPlayerName}

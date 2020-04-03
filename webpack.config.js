@@ -38,7 +38,6 @@ const config = {
 };
 
 if (process.env.WEBPACK_RULE_FOR_JS) {
-  console.log('**CJK** set TerserPlugin');
   const TerserPlugin = require('terser-webpack-plugin');
   config.optimization.minimizer.push(new TerserPlugin({cache: true, parallel: true, sourceMap: sourceMap}));
   config.module.rules.push({
@@ -77,12 +76,15 @@ if (process.env.WEBPACK_RULE_FOR_CSS) {
 }
 
 if (process.env.WEBPACK_RULE_FOR_SASS) {
+  const sassOptions = {
+    includePaths: sassIncludePaths
+  };
   config.module.rules.push({
     test: /\.s(a|c)ss$/,
     use: [
       MiniCssExtractPlugin.loader,
       {loader: 'css-loader', options: {sourceMap: sourceMap}},
-      {loader: 'sass-loader', options: {includePaths: sassIncludePaths, sourceMap: sourceMap}}
+      {loader: 'sass-loader', options: {sassOptions, sourceMap: sourceMap}}
     ]
   });
 }

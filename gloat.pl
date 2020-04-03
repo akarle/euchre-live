@@ -10,7 +10,7 @@ use lib "$FindBin::RealBin/lib";
 
 use Euchre::Dealer;
 
-plugin Webpack => {process => [qw(js css)]};
+plugin Webpack => {process => [qw(js css sass)]};
 
 get '/' => sub {
     my $c = shift;

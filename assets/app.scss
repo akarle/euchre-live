@@ -1,0 +1,58 @@
+@import 'carbon-components/scss/globals/scss/styles.scss';
+
+.textRow {
+    display: flex;
+    align-items: flex-start;
+    margin-left: 15px;
+    width: 30rem;
+    .bx--btn--icon-only {
+        background-color: lightgreen;
+    }
+}
+
+.table__header {
+    height: 10vh;
+}
+.table__top {
+    height: 20vh;
+}
+.table__mid {
+    height: 50vh;
+}
+.table__bot {
+    height: 20vh;
+}
+
+.hd__left {
+    background-color: rosybrown;
+}
+.hd__right {
+    background-color: skyblue;
+}
+.tt__left {
+    background-color: slategray;
+}
+.tt__center {
+    background-color: lightgreen;
+}
+.tt__right {
+    background-color: lightsalmon;
+}
+.tm__left {
+    background-color: lightskyblue;
+}
+.tm__center {
+    background-color: lightpink;
+}
+.tm__right {
+    background-color: lightgreen;
+}
+.tb__left {
+    background-color: slategray;
+}
+.tb__center {
+    background-color: lightgreen;
+}
+.tb__right {
+    background-color: lightsalmon;
+}

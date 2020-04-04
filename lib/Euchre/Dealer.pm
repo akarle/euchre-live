@@ -37,6 +37,7 @@ our @EXPORT = qw(
 #           score => [X, Y],
 #           phase => 'lobby', 'play', 'vote', 'end'
 #           trump_nominee => 0-23,
+#           pass_count => 0-7,
 #       }
 #
 #   We decided the players would keep track of their own hands
@@ -99,6 +100,7 @@ sub handle_msg {
         take_seat   => \&take_seat,
         stand_up    => \&stand_up,
         start_game  => \&start_game,
+        vote_trump  => \&vote_trump,
     );
 
     if (exists $dispatch{$msg->{action}}) {
@@ -126,7 +128,7 @@ sub join_game {
             trump => -1,
             tricks => [0, 0, 0, 0],
             table => [],
-            callers => -1,
+            caller => -1,
             score => [0, 0],
             phase => 'lobby',
         };
@@ -221,6 +223,7 @@ sub start_new_round {
     # Signal vote of player next to dealer...
     $game->{turn} = ($game->{dealer} + 1 % 4);
     $game->{phase} = 'vote';
+    $game->{pass_count} = 0;
     broadcast_gamestate($game); # includes trump_nominee
 }
 
@@ -241,6 +244,41 @@ sub deal_players_hands {
         });
     }
 }
+
+
+# msg.vote  = 'suit' or 'pass'
+# msg.loner = 0 or 1
+sub vote_trump {
+    my ($p, $msg) = @_;
+
+    my $game = $p->{game};
+    if ($game->{turn} != $p->{seat}) {
+        send_error("Not your turn!");
+    } else {
+        if ($msg->{vote} eq 'pass') {
+            $game->{turn} = ($game->{turn} + 1 % 4);
+            $game->{pass_count}++;
+            if ($game->{pass_count} >= 8) {
+                # Throw em in
+                start_new_round($game);
+            } else {
+                broadcast_gamestate($game);
+            }
+        } elsif (defined suit_to_id($msg->{vote})) {
+            # XXX handle loner (needs to handle next-player)
+            # NOTE: we let clients decide what's kosher to vote
+            # based on their hand state, pass_count
+            $game->{trump} = suit_to_id($msg->{vote});
+            $game->{caller} = $p->{seat};
+            $game->{phase} = 'play';
+            $game->{turn} = ($game->{dealer} + 1 % 4);
+            broadcast_gamestate($game);
+        } else {
+            send_error("Bad vote");
+        }
+    }
+}
+
 
 # XXX: The most simplest (bulkiest) message we can send is to just
 # broadcast the gamestate to all clients. This will be our temporary

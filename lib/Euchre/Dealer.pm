@@ -36,6 +36,7 @@ our @EXPORT = qw(
 #           table => [ c1, c2, c3, c4 ], # up to 4 cards
 #           score => [X, Y],
 #           in_progress => 0/1,
+#           trump_nominee => 0-23,
 #       }
 #
 #   We decided the players would keep track of their own hands
@@ -208,10 +209,13 @@ sub num_players {
 sub start_new_round {
     my ($game) = @_;
 
+    # Shift dealer and deal
+    $game->{dealer} = ($game->{dealer} + 1 % 4);
     deal_players_hands($game);
 
-    # TODO: vote trump
-    # TODO: start accepting play_card's
+    # Signal vote of player next to dealer...
+    $game->{turn} = ($game->{dealer} + 1 % 4);
+    broadcast_gamestate($game); # includes trump_nominee
 }
 
 # Hands need to be sent as private messages. For now, we don't
@@ -220,14 +224,13 @@ sub deal_players_hands {
     my ($game) = @_;
 
     my ($handsA, $kiddeyA) = deal();
-    my $nominee = cid_to_name(shift @$kiddeyA);
+    $game->{trump_nominee} = shift @$kiddeyA;
     for my $p (@{$game->{players}}) {
         my @hand = map { cid_to_name($_) } @{shift @$handsA};
         $p->{ws}->send({ json =>
             {
                 msg_type => 'deal',
                 hand => \@hand,
-                trump_nominee => $nominee,
             }
         });
     }
@@ -252,6 +255,10 @@ sub broadcast_gamestate {
         players => \@pnames,
         spectators => \@snames,
     };
+
+    if (exists $game->{trump_nominee}) {
+        $msg->{trump_nominee} = cid_to_name($game->{trump_nominee});
+    }
 
     my $json = { msg_type => 'game_state', game => $msg };
     for my $ws (@all_ws) {

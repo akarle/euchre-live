@@ -16,13 +16,13 @@
         gameState = '<br>Game:          ' + msg.game.id + '<br>' +
           'Players:       ' + msg.game.players + '<br>' +
           'Spectators:    ' + msg.game.spectators + '<br>' +
-          'In Progress?:  ' + msg.game.in_progress + '<br>'
+          'In Progress?:  ' + msg.game.in_progress + '<br>' +
+          'Trump Nominee: ' + msg.game.trump_nominee + '<br>'
         document.getElementById('game').innerHTML = gameState
       } else if (msg.msg_type === 'error') {
         document.getElementById('error').innerHTML += msg.msg + '<br>'
       } else if (msg.msg_type === 'deal') {
         document.getElementById('hand').innerHTML = 'HAND: ' + msg.hand + '<br>'
-        document.getElementById('nominee').innerHTML = 'Trump Nominee: ' + msg.trump_nominee + '<br>'
       }
     };
 

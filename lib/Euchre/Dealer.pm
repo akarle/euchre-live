@@ -94,20 +94,37 @@ sub gloaters_never_win {
 sub handle_msg {
     my ($cid, $msg) = @_;
 
+    # Crazy magic dispatch of
+    #
+    #   action => [ handler, req-phase, phase-err, needs-turn ]
+    #
+    # The last three are optional, but are useful to dedupe common
+    # assertions (like, needs to be their turn)
     my %dispatch = (
         # Game management endpoints
-        join_game   => \&join_game,
-        take_seat   => \&take_seat,
-        stand_up    => \&stand_up,
-        start_game  => \&start_game,
-        vote_trump  => \&vote_trump,
-        play_card   => \&play_card,
+        join_game   => [\&join_game],
+        take_seat   => [\&take_seat, 'lobby', "Can't change seats during game"],
+        stand_up    => [\&stand_up, 'lobby', "Can't change seats during game"],
+        start_game  => [\&start_game, 'lobby', "Game already started"],
+
+        # Gameplay
+        vote_trump  => [\&vote_trump, 'vote', "Not time for a vote", 1],
+        play_card   => [\&play_card, 'play', "Can't play cards yet", 1],
     );
 
-    if (exists $dispatch{$msg->{action}}) {
-        $dispatch{$msg->{action}}->($PLAYERS{$cid}, $msg);
-    } else {
+
+    if (!exists $dispatch{$msg->{action}}) {
         die "Unknown API action: $msg->{action}";
+    }
+
+    my $p = $PLAYERS{$cid};
+    my ($handler, $req_phase, $phase_err, $turn_based) = @{$dispatch{$msg->{action}}};
+    if ($req_phase && ($p->{game}->{phase} ne $req_phase)) {
+        send_error($p, $phase_err);
+    } elsif ($turn_based && ($p->{seat} != $p->{game}->{turn})) {
+        send_error($p, "Not your turn!");
+    } else {
+        $handler->($p, $msg);
     }
 }
 
@@ -254,30 +271,26 @@ sub vote_trump {
     my ($p, $msg) = @_;
 
     my $game = $p->{game};
-    if ($game->{turn} != $p->{seat}) {
-        send_error("Not your turn!");
-    } else {
-        if ($msg->{vote} eq 'pass') {
-            $game->{turn} = ($game->{turn} + 1 % 4);
-            $game->{pass_count}++;
-            if ($game->{pass_count} >= 8) {
-                # Throw em in
-                start_new_round($game);
-            } else {
-                broadcast_gamestate($game);
-            }
-        } elsif (defined suit_to_id($msg->{vote})) {
-            # XXX handle loner (needs to handle next-player)
-            # NOTE: we let clients decide what's kosher to vote
-            # based on their hand state, pass_count
-            $game->{trump} = suit_to_id($msg->{vote});
-            $game->{caller} = $p->{seat};
-            $game->{phase} = 'play';
-            $game->{turn} = ($game->{dealer} + 1 % 4);
-            broadcast_gamestate($game);
+    if ($msg->{vote} eq 'pass') {
+        $game->{turn} = ($game->{turn} + 1 % 4);
+        $game->{pass_count}++;
+        if ($game->{pass_count} >= 8) {
+            # Throw em in
+            start_new_round($game);
         } else {
-            send_error("Bad vote");
+            broadcast_gamestate($game);
         }
+    } elsif (defined suit_to_id($msg->{vote})) {
+        # XXX handle loner (needs to handle next-player)
+        # NOTE: we let clients decide what's kosher to vote
+        # based on their hand state, pass_count
+        $game->{trump} = suit_to_id($msg->{vote});
+        $game->{caller} = $p->{seat};
+        $game->{phase} = 'play';
+        $game->{turn} = ($game->{dealer} + 1 % 4);
+        broadcast_gamestate($game);
+    } else {
+        send_error("Bad vote");
     }
 }
 
@@ -288,12 +301,6 @@ sub play_card {
     # Identify player
     my $game = $p->{game};
     my $seat = $p->{seat};
-
-    # Make sure we all behave
-    if ($p->{seat} != $game->{turn}) {
-        send_error("Not your turn");
-        return;
-    }
 
     # Update the table and current player
     push @{$game->{table}}, $msg->{card};
@@ -329,7 +336,7 @@ sub play_card {
 
 sub signal_game_end {
     my ($game) = @_;
-    
+
     # TODO: send message with winners and end the game
     # (maybe put game no longer in progress?)
     $game->{phase} = 'end';

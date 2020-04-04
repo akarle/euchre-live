@@ -162,7 +162,8 @@ sub take_seat {
     if (defined $game->{players}->[$seat]) {
         send_error($p, 'Seat is taken');
     } else {
-        # Move from standing to sitting
+        # Move from standing (or sitting) to sitting
+        stand_up($p) if defined $p->{seat};
         $game->{players}->[$seat] = $p;
         $p->{seat} = $seat;
         for (my $i = 0; $i < @{$game->{spectators}}; $i++) {
@@ -185,6 +186,7 @@ sub stand_up {
     } else {
         # Move from sitting to standing
         push @{$game->{spectators}}, $p;
+        delete $p->{seat};
         $game->{players}->[$seat] = undef;
         broadcast_gamestate($game);
     }

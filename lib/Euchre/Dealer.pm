@@ -154,6 +154,11 @@ sub take_seat {
     my $game = $p->{game};
     my $seat = $msg->{seat};
 
+    if ($seat > 3 || $seat < 0) {
+        send_error($p, 'Invalid seat');
+        return;
+    }
+
     if (defined $game->{players}->[$seat]) {
         send_error($p, 'Seat is taken');
     } else {

@@ -35,7 +35,7 @@ our @EXPORT = qw(
 #           caller => 0-3,
 #           table => [ c1, c2, c3, c4 ], # up to 4 cards
 #           score => [X, Y],
-#           in_progress => 0/1,
+#           phase => 'lobby', 'play', 'vote', 'end'
 #           trump_nominee => 0-23,
 #       }
 #
@@ -128,13 +128,13 @@ sub join_game {
             table => [],
             callers => -1,
             score => [0, 0],
-            in_progress => 0,
+            phase => 'lobby',
         };
     }
 
     # Handle full game case
-    if ($GAMES{$id}->{in_progress}) {
-        send_error($p, 'Already 4 players');
+    if ($GAMES{$id}->{phase} ne 'lobby') {
+        send_error($p, 'Game already in progress');
     } else {
         # Add player object to Game
         # All players start as spectators and have to take a seat explicitly
@@ -198,10 +198,8 @@ sub start_game {
     if (num_players($game->{id}) < 4) {
         send_error($p, "Can't start with empty seats!");
     } else {
-        $game->{in_progress} = 1;
         # TODO: kick spectators out?
         # TODO: deal!
-        broadcast_gamestate($game);
     }
     start_new_round($game);
 }
@@ -220,6 +218,7 @@ sub start_new_round {
 
     # Signal vote of player next to dealer...
     $game->{turn} = ($game->{dealer} + 1 % 4);
+    $game->{phase} = 'vote';
     broadcast_gamestate($game); # includes trump_nominee
 }
 

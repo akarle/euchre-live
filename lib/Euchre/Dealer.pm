@@ -4,7 +4,7 @@ use warnings;
 
 package Euchre::Dealer;
 
-use List::Util;
+use List::Util qw(sum);
 
 use Euchre::Card;
 use Euchre::Game;
@@ -181,6 +181,7 @@ sub take_seat {
 
     if (defined $game->{players}->[$seat]) {
         send_error($p, 'Seat is taken');
+        return;
     } else {
         # Move from standing (or sitting) to sitting
         stand_up($p) if defined $p->{seat};
@@ -219,10 +220,11 @@ sub start_game {
 
     if (num_players($game->{id}) < 4) {
         send_error($p, "Can't start with empty seats!");
-    } else {
-        # TODO: kick spectators out?
-        # TODO: deal!
+        return;
     }
+
+    # TODO: kick spectators out?
+    # TODO: deal!
     start_new_round($game);
 }
 
@@ -237,10 +239,11 @@ sub start_new_round {
     # Shift dealer and deal
     $game->{dealer} = ($game->{dealer} + 1 % 4);
     $game->{table} = [];
+    $game->{tricks} = [0,0,0,0];
     deal_players_hands($game);
 
     # Signal vote of player next to dealer...
-    $game->{turn} = ($game->{dealer} + 1 % 4);
+    reset_turn($game);
     $game->{phase} = 'vote';
     $game->{pass_count} = 0;
     broadcast_gamestate($game); # includes trump_nominee
@@ -272,7 +275,7 @@ sub vote_trump {
 
     my $game = $p->{game};
     if ($msg->{vote} eq 'pass') {
-        $game->{turn} = ($game->{turn} + 1 % 4);
+        next_turn($game);
         $game->{pass_count}++;
         if ($game->{pass_count} >= 8) {
             # Throw em in
@@ -287,10 +290,10 @@ sub vote_trump {
         $game->{trump} = suit_to_id($msg->{vote});
         $game->{caller} = $p->{seat};
         $game->{phase} = 'play';
-        $game->{turn} = ($game->{dealer} + 1 % 4);
+        reset_turn($game);
         broadcast_gamestate($game);
     } else {
-        send_error("Bad vote");
+        send_error($p, "Bad vote");
     }
 }
 
@@ -304,23 +307,27 @@ sub play_card {
 
     # Update the table and current player
     push @{$game->{table}}, $msg->{card};
-    $game->{turn} = ($game->{turn} + 1 % 4); # XXX: loner turn
+    next_turn($game);
 
-    if (@{$game->{table} >= 4}) {
+    if (@{$game->{table}} >= 4) {
         # End trick -- update tricks, clear table, and set current player
         my @table = map { cname_to_id($_) } @{$game->{table}};
         my $winner_id = trick_winner($game->{trump}, @table);
 
+        # this is the id in TABLE, not players
+        # at this point turn is back to the start...
+        $winner_id = ($winner_id + $game->{turn}) % 4;
+
         $game->{tricks}->[$winner_id]++;
-        $game->{table} = [];
         $game->{turn} = $winner_id;
+        $game->{table} = [];
 
         if (sum(@{$game->{tricks}}) >= 5) {
             # End round -- update scores, clear tricks, push dealer
             my ($team_id, $score) = score_round($game->{caller}, @{$game->{tricks}});
-            $game->{scores}->[$team_id] += $score;
+            $game->{score}->[$team_id] += $score;
 
-            if ($game->{scores}->[$team_id] >= 10) {
+            if ($game->{score}->[$team_id] >= 10) {
                 # End game... no need to redeal
                 signal_game_end($game);
             } else {
@@ -379,6 +386,20 @@ sub send_error {
     my $ws = $p->{ws};
     my $json = { msg_type => 'error', msg => $msg };
     $ws->send({ json => $json});
+}
+
+sub next_turn {
+    my ($game) = @_;
+
+    $game->{turn} = ($game->{turn} + 1) % 4;
+    # XXX pass again if loner!
+}
+
+sub reset_turn {
+    my ($game) = @_;
+
+    $game->{turn} = ($game->{dealer} + 1) % 4;
+    # XXX pass again if loner!
 }
 
 1;

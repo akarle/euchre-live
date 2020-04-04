@@ -101,6 +101,7 @@ sub handle_msg {
         stand_up    => \&stand_up,
         start_game  => \&start_game,
         vote_trump  => \&vote_trump,
+        play_card   => \&play_card,
     );
 
     if (exists $dispatch{$msg->{action}}) {
@@ -218,6 +219,7 @@ sub start_new_round {
 
     # Shift dealer and deal
     $game->{dealer} = ($game->{dealer} + 1 % 4);
+    $game->{table} = [];
     deal_players_hands($game);
 
     # Signal vote of player next to dealer...
@@ -277,6 +279,60 @@ sub vote_trump {
             send_error("Bad vote");
         }
     }
+}
+
+# msg.card => 'AH'
+sub play_card {
+    my ($p, $msg) = @_;
+
+    # Identify player
+    my $game = $p->{game};
+    my $seat = $p->{seat};
+
+    # Make sure we all behave
+    if ($p->{seat} != $game->{turn}) {
+        send_error("Not your turn");
+        return;
+    }
+
+    # Update the table and current player
+    push @{$game->{table}}, $msg->{card};
+    $game->{turn} = ($game->{turn} + 1 % 4); # XXX: loner turn
+
+    if (@{$game->{table} >= 4}) {
+        # End trick -- update tricks, clear table, and set current player
+        my @table = map { cname_to_id($_) } @{$game->{table}};
+        my $winner_id = trick_winner($game->{trump}, @table);
+
+        $game->{tricks}->[$winner_id]++;
+        $game->{table} = [];
+        $game->{turn} = $winner_id;
+
+        if (sum(@{$game->{tricks}}) >= 5) {
+            # End round -- update scores, clear tricks, push dealer
+            my ($team_id, $score) = score_round($game->{caller}, @{$game->{tricks}});
+            $game->{scores}->[$team_id] += $score;
+
+            if ($game->{scores}->[$team_id] >= 10) {
+                # End game... no need to redeal
+                signal_game_end($game);
+            } else {
+                start_new_round($game);
+            }
+        }
+    }
+
+    # XXX: for fast prototyping we just broadcast gamestate
+    broadcast_gamestate($game);
+}
+
+
+sub signal_game_end {
+    my ($game) = @_;
+    
+    # TODO: send message with winners and end the game
+    # (maybe put game no longer in progress?)
+    $game->{phase} = 'end';
 }
 
 

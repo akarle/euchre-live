@@ -1,13 +1,28 @@
 @import 'carbon-components/scss/globals/scss/styles.scss';
 
+.lobby__outer {
+    margin-top: 3rem;
+    margin-left: 3rem;
+}
+
 .textRow {
     display: flex;
     align-items: flex-start;
+    margin-top: 1rem;
     margin-left: 15px;
     width: 30rem;
     .bx--btn--icon-only {
         background-color: lightgreen;
     }
+}
+
+.exit__row {
+    display: flex;
+    justify-content: flex-end;
+    align-items: baseline;
+}
+.leave__button {
+    font-size: 1.3rem;
 }
 
 .table__header {

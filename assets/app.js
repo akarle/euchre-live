@@ -3,15 +3,23 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import Lobby from './components/Lobby';
 import CardTable from './components/CardTable';
+import { w3cwebsocket as W3CWebSocket } from 'websocket';
+
+const client = new W3CWebSocket('ws://localhost:3000/play');
+
+
+const tableDebug = false;
 
 class App extends React.Component {
 
     constructor(props) {
         super(props);
+        const initialName = tableDebug ? 'Alex' : '';
+        const initialTable = tableDebug ? 'periodic' : '';
         this.state = {
-            playerName: '',
-            tableName: '',
-            showTable: false
+            playerName: initialName,
+            tableName: initialTable,
+            showTable: tableDebug
         };
     }
 
@@ -23,12 +31,16 @@ class App extends React.Component {
 
     chooseTable = tableName => {
         const show = tableName && tableName != '';
-        this.setState(
-            {
+        this.setState( {
                 tableName: tableName,
                 showTable: show
-            }
-        );
+        }, () => {
+            client.send(JSON.stringify({
+                action:'join_game',
+                player_name: this.state.playerName,
+                game_id: tableName
+            }));
+        });
     }
 
     render () {
@@ -47,6 +59,8 @@ class App extends React.Component {
                         chooseTable={this.chooseTable}
                         name={playerName}
                         tableName={tableName}
+                        active={showTable}
+                        client={client}
                     />
                 )}
             </div>

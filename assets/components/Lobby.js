@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import {Button, TextInput} from 'carbon-components-react';
 import {Login32, CheckmarkOutline32} from '@carbon/icons-react';
@@ -12,6 +12,19 @@ export default class Lobby extends React.Component {
             nameError: false,
             tableIn: '',
             tableError: false
+        }
+    }
+
+    componentDidMount () {
+        if (this.nameText) {
+            this.nameText.focus();
+        }
+    }
+
+    componentDidUpdate (prevProps) {
+        const { name } = this.props;
+        if (name && (name != prevProps.name)){
+            this.tableText.focus();
         }
     }
 
@@ -42,7 +55,7 @@ export default class Lobby extends React.Component {
         const {name} = this.props;
         const {nameIn, nameError, tableIn, tableError} = this.state;
         return (
-            <div id="lobby">
+            <div id="lobby" className="lobby__outer">
                 <h2>Welcome to the Lobby</h2>
                 {!name &&
                 <p>First tell us the name that you'll be using for this game...</p>
@@ -56,13 +69,15 @@ export default class Lobby extends React.Component {
                         invalidText="Sorry, letters A-Z a-z and spaces only"
                         invalid={nameError}
                         onChange={this.handlePlayerIn}
+                        ref={(input) => {this.nameText = input;}}
                     />
                     <Button
                         className="name__button"
                         hasIconOnly={true}
                         onClick={()=>this.props.setName(nameIn)}
                         renderIcon={CheckmarkOutline32}
-                        iconDescription=""
+                        iconDescription="set name"
+                        tooltipPosition="bottom"
                         disabled={nameError}
                     />
                 </div>
@@ -81,13 +96,15 @@ export default class Lobby extends React.Component {
                             invalidText="Sorry, letters A-Z a-z and spaces only"
                             invalid={tableError}
                             onChange={this.handleTableIn}
+                            ref={(input) => {this.tableText = input;}}
                         />
                         <Button
                             className="table__button"
                             hasIconOnly
                             onClick={()=>this.props.chooseTable(tableIn)}
                             renderIcon={Login32}
-                            iconDescription=""
+                            iconDescription="go!"
+                            tooltipPosition="bottom"
                             disabled={tableError || !name || name==''}
                         />
                     </div>

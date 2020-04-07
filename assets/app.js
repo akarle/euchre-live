@@ -15,12 +15,22 @@ class App extends React.Component {
     constructor(props) {
         super(props);
         const initialName = tableDebug ? 'Alex' : '';
-        const initialTable = tableDebug ? 'periodic' : '';
+        const initialTable = tableDebug ? ('periodic-'+Math.floor(Math.random() * 100)) : '';
         this.state = {
             playerName: initialName,
             tableName: initialTable,
             showTable: tableDebug
         };
+        if (tableDebug) { // on tableDebug send join w initialTable to server
+            // wait 1 second so socket establishes connection
+            setTimeout(()=>{
+                client.send(JSON.stringify({
+                    action:'join_game',
+                    player_name: initialName,
+                    game_id: initialTable
+                }));
+            }, 1000);
+        }
     }
 
     setPlayerName = name => {

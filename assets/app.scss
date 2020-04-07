@@ -24,6 +24,32 @@
 .leave__button {
     font-size: 1.3rem;
 }
+.seat__picker {
+    height: 46vh;
+    margin-top: 2vh;
+}
+.table__seat {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+}
+.spName {
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
+.sp__top, .sp__bot {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 12vh;
+}
+.sp__mid {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 20vh;
+}
 
 .table__header {
     height: 10vh;
@@ -56,9 +82,9 @@
 .tm__left {
     background-color: lightskyblue;
 }
-.tm__center {
-    background-color: lightpink;
-}
+// .tm__center {
+//     background-color: lightpink;
+// }
 .tm__right {
     background-color: lightgreen;
 }

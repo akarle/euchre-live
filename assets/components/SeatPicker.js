@@ -14,16 +14,17 @@ class SeatPicker extends React.Component {
     tableSeat = (name, index) => {
         const taken = name != 'Empty';
         const mine = index === this.props.mySeat;
+        const iAmSeated = -1 != this.props.mySeat;
         return (
             <div className="table__seat">
-                {!taken && (
+                {!taken && !iAmSeated && (
                 <Button
                     className="sit__button"
                     kind="ghost"
                     onClick={()=>{this.props.handleSit(index)}}
                     renderIcon={Package32}>Choose seat</Button>
                 )}
-                {taken && (<span className="spName">{name}</span>)}
+                {(taken || iAmSeated) && (<div className="spName">{name}</div>)}
                 {taken && mine && (
                     <Button
                     className="stand__button"

@@ -20,6 +20,6 @@ DIR=`dirname $0`
 cd $DIR
 
 # XXX: this should be handled by the server...
-export MOJO_INACTIVITY_TIMEOUT=500
+export MOJO_INACTIVITY_TIMEOUT=1000
 
 exec mojo webpack ./gloat.pl

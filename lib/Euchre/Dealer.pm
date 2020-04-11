@@ -159,14 +159,26 @@ sub join_game {
     if ($GAMES{$id}->{phase} ne 'lobby') {
         send_error($p, 'Game already in progress');
     } else {
+        my $game = $GAMES{$id};
+
+        # Make sure name is unique to game
+        my @all_names = map { $_->{name} }
+                        grep { defined }
+                        (@{$game->{players}}, @{$game->{spectators}});
+
+        if (grep { $_ eq $msg->{player_name} } @all_names) {
+            send_error($p, 'Username not unique');
+            return;
+        }
+
         # Add player object to Game
         # All players start as spectators and have to take a seat explicitly
         $p->{name} = $msg->{player_name};
         $p->{hand} = [];
-        $p->{game} = $GAMES{$id};
-        push @{$GAMES{$id}->{spectators}}, $p;
+        $p->{game} = $game;
+        push @{$game->{spectators}}, $p;
 
-        broadcast_gamestate($GAMES{$id});
+        broadcast_gamestate($game);
     }
 }
 

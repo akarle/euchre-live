@@ -30,7 +30,7 @@
 
         if (typeof msg.game.trump_nominee !== 'undefined') {
           gameState += 'Trump Nominee: ' + '<img class="card" src="cards/' + msg.game.trump_nominee + '.svg"><br>'
-          vote_trump_suit = msg.game.trump_nominee.substring(1,2);
+          order_suit = msg.game.trump_nominee.substring(1,2);
         }
 
         document.getElementById('hand').innerHTML = 'HAND: <br>'
@@ -43,6 +43,9 @@
           document.getElementById('table').innerHTML = ''
           for (var i = 0; i < msg.game.table.length; i++) {
             var c = msg.game.table[i]
+            if (c === null) {
+              c = '2B' // show back
+            }
             document.getElementById('table').innerHTML += '<img class="card" src="cards/' + c + '.svg">'
           }
         } else {
@@ -72,11 +75,11 @@
     function start_game() {
       ws.send(JSON.stringify({action:'start_game'}))
     }
-    function vote() {
-      ws.send(JSON.stringify({action:'vote_trump', vote: vote_trump_suit}))
+    function vote(a) {
+      ws.send(JSON.stringify({action:'order', vote: order_suit, loner: a}))
     }
     function pass() {
-      ws.send(JSON.stringify({action:'vote_trump', vote: 'pass'}))
+      ws.send(JSON.stringify({action:'order', vote: 'pass'}))
     }
     function play(card) {
       ws.send(JSON.stringify({action:'play_card', card: card}))
@@ -107,7 +110,8 @@
  <br> <br>
  <div id="hand">No cards in hand</div>
  <br>
- <button onclick="vote()">Vote Trump</button>
+ <button onclick="vote(0)">Order</button>
+ <button onclick="vote(1)">Loner</button>
  <button onclick="pass()">Pass</button>
  <br><br>
  <div id="error" style="color:red"> </div>

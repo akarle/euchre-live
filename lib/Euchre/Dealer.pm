@@ -33,11 +33,12 @@ our @EXPORT = qw(
 #           turn => 0-3,
 #           trump => 0-3,
 #           caller => 0-3,
-#           table => [ c1, c2, c3, c4 ], # up to 4 cards
+#           table => [ c1, c2, c3, c4 ], # exactly 4, undef if not played
 #           score => [X, Y],
 #           phase => 'lobby', 'play', 'vote', 'end'
 #           trump_nominee => 0-23,
 #           pass_count => 0-7,
+#           out_player => -1-3, -1 if none, else idx of "out player"
 #       }
 #
 #   We decided the players would keep track of their own hands
@@ -53,7 +54,7 @@ our @EXPORT = qw(
 #           name => username,
 #           seat => 0-3,
 #           ws   => websocket obj,
-#           hand => cards in hand
+#           hand => cards in hand,
 #       }
 #
 #   The players keyed on ws id is key (pun) because the closure in
@@ -110,7 +111,7 @@ sub handle_msg {
         start_game  => [\&start_game, 'lobby', "Game already started"],
 
         # Gameplay
-        vote_trump  => [\&vote_trump, 'vote', "Not time for a vote", 1],
+        order       => [\&order, 'vote', "Not time for a vote", 1],
         play_card   => [\&play_card, 'play', "Can't play cards yet", 1],
     );
 
@@ -152,7 +153,7 @@ sub join_game {
             dealer => -1,
             trump => -1,
             tricks => [0, 0, 0, 0],
-            table => [],
+            table => [undef, undef, undef, undef],
             caller => -1,
             score => [0, 0],
             phase => 'lobby',
@@ -245,9 +246,11 @@ sub start_new_round {
 
     # Shift dealer and deal
     $game->{dealer} = ($game->{dealer} + 1 % 4);
-    $game->{table} = [];
+    $game->{table} = [undef, undef, undef, undef];
     $game->{tricks} = [0,0,0,0];
+    $game->{out_player} = -1;
     deal_players_hands($game);
+
 
     # Signal vote of player next to dealer...
     reset_turn($game);
@@ -271,7 +274,7 @@ sub deal_players_hands {
 
 # msg.vote  = 'suit' or 'pass'
 # msg.loner = 0 or 1
-sub vote_trump {
+sub order {
     my ($p, $msg) = @_;
 
     my $game = $p->{game};
@@ -285,12 +288,15 @@ sub vote_trump {
             broadcast_gamestate($game);
         }
     } elsif (defined suit_to_id($msg->{vote})) {
-        # XXX handle loner (needs to handle next-player)
-        # NOTE: we let clients decide what's kosher to vote
-        # based on their hand state, pass_count
+        # TODO: add hand/suit validation?
         $game->{trump} = suit_to_id($msg->{vote});
         $game->{caller} = $p->{seat};
         $game->{phase} = 'play';
+        if ($msg->{loner}) {
+            my $partner_seat = ($p->{seat} + 2) % 4;
+            $game->{out_player} = $partner_seat;
+            $game->{tricks}->[$partner_seat] = 'X';
+        }
         reset_turn($game);
         broadcast_gamestate($game);
     } else {
@@ -321,23 +327,23 @@ sub play_card {
     }
 
     # Update the table and current player
-    push @{$game->{table}}, $msg->{card};
+    $game->{table}->[$seat] = $msg->{card};
     next_turn($game);
 
-    if (@{$game->{table}} >= 4) {
+    # Adjust num cards on table by if there's an out player
+    my $played_cards = scalar grep { defined } @{$game->{table}};
+    my $out_adj = ($game->{out_player} >= 0 ? 1 : 0);
+    if ($played_cards >= (4 - $out_adj)) {
         # End trick -- update tricks, clear table, and set current player
-        my @table = map { cname_to_id($_) } @{$game->{table}};
+        my @table = map { defined($_) ? cname_to_id($_) : -1 } @{$game->{table}};
         my $winner_id = trick_winner($game->{trump}, @table);
-
-        # this is the id in TABLE, not players
-        # at this point turn is back to the start...
-        $winner_id = ($winner_id + $game->{turn}) % 4;
 
         $game->{tricks}->[$winner_id]++;
         $game->{turn} = $winner_id;
-        $game->{table} = [];
+        $game->{table} = [undef, undef, undef, undef];
 
-        if (sum(@{$game->{tricks}}) >= 5) {
+        my @num_tricks = grep { /^\d+$/ } @{$game->{tricks}};
+        if (sum(@num_tricks) >= 5) {
             # End round -- update scores, clear tricks, push dealer
             my ($team_id, $score) = score_round($game->{caller}, @{$game->{tricks}});
             $game->{score}->[$team_id] += $score;
@@ -390,6 +396,7 @@ sub broadcast_gamestate {
             msg_type => 'game_state',
             game => $msg,
             hand => $p->{hand},
+            sit_out => $p->{sit_out},
         };
         $p->{ws}->send({ json => $json });
     }
@@ -406,15 +413,18 @@ sub send_error {
 sub next_turn {
     my ($game) = @_;
 
-    $game->{turn} = ($game->{turn} + 1) % 4;
-    # XXX pass again if loner!
+    my $turn = ($game->{turn} + 1) % 4;
+    if ($turn == $game->{out_player}) {
+        # It's a loner! Only gonna be one of these...
+        $turn = ($turn + 1) % 4;
+    }
+    $game->{turn} = $turn;
 }
 
 sub reset_turn {
     my ($game) = @_;
-
-    $game->{turn} = ($game->{dealer} + 1) % 4;
-    # XXX pass again if loner!
+    $game->{turn} = $game->{dealer};
+    next_turn($game);
 }
 
 1;

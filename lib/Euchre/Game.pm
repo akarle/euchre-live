@@ -41,6 +41,8 @@ sub trick_winner {
     my $led = int($cards[0] / 6);
     my @values = @cards;
     for (my $i = 0; $i < @values; $i++) {
+        next if $cards[$i] < 0; # indicates loner
+
         # Identify the card
         my $c = $cards[$i];
         my $suit = int($c / 6);

@@ -19,4 +19,8 @@ depends mojo
 DIR=`dirname $0`
 cd $DIR
 
-exec mojo webpack ./gloat.pl
+if [ -n "$DEBUG" ]; then
+    exec ./gloat.pl daemon
+else
+    exec mojo webpack ./gloat.pl
+fi

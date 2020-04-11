@@ -73,11 +73,6 @@ sub register_player {
     my $id = ''.$tx;
     $PLAYERS{$id} = { id => $id, ws => $tx };
     print "Player $id has joined the server\n";
-    if ($ENV{DEBUG}) {
-        use Data::Dumper;
-        print Dumper(\%PLAYERS);
-        print Dumper(\%GAMES);
-    }
 }
 
 # finish handler to cleanup state

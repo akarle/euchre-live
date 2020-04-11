@@ -15,7 +15,7 @@
     var ws = new WebSocket('ws://localhost:3000/play');
     ws.onmessage = function (event) { 
       msg = JSON.parse(event.data);
-      console.log(msg)
+      if (msg.msg_type !== 'pong') { console.log(msg) }
 
       if (msg.msg_type === 'game_state') {
         gameState = '<br>Game:          ' + msg.game.id + '<br>' +
@@ -51,6 +51,8 @@
           var c = msg.hand[i]
           document.getElementById('hand').innerHTML += '<img onclick="play(' + "'" +  c + "'" + ')" class="card" src="cards/' + c + '.svg">'
         }
+      //} else if (msg.msg_type === 'pong') {
+      //  console.log('pong!');
       }
     };
 
@@ -79,6 +81,8 @@
     function play(card) {
       ws.send(JSON.stringify({action:'play_card', card: card}))
     }
+
+    window.setInterval(() => { ws.send(JSON.stringify({action:'ping'})) }, 5000);
   </script>
  <h1>Hello, World</h1>
 

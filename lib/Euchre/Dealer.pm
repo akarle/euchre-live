@@ -102,6 +102,7 @@ sub handle_msg {
     # assertions (like, needs to be their turn)
     my %dispatch = (
         # Game management endpoints
+        ping        => [\&pong],
         join_game   => [\&join_game],
         take_seat   => [\&take_seat, 'lobby', "Can't change seats during game"],
         stand_up    => [\&stand_up, 'lobby', "Can't change seats during game"],
@@ -126,6 +127,11 @@ sub handle_msg {
     } else {
         $handler->($p, $msg);
     }
+}
+
+sub pong {
+    my ($p) = @_;
+    $p->{ws}->send({ json => { msg_type => 'pong' } });
 }
 
 # player_name

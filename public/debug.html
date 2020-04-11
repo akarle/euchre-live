@@ -33,6 +33,12 @@
           vote_trump_suit = msg.game.trump_nominee.substring(1,2);
         }
 
+        document.getElementById('hand').innerHTML = 'HAND: <br>'
+        for (var i = 0; i < msg.hand.length; i++) {
+          var c = msg.hand[i]
+          document.getElementById('hand').innerHTML += '<img onclick="play(' + "'" +  c + "'" + ')" class="card" src="cards/' + c + '.svg">'
+        }
+
         if (msg.game.table.length) {
           document.getElementById('table').innerHTML = ''
           for (var i = 0; i < msg.game.table.length; i++) {
@@ -45,12 +51,6 @@
         document.getElementById('game').innerHTML = gameState
       } else if (msg.msg_type === 'error') {
         document.getElementById('error').innerHTML += msg.msg + '<br>'
-      } else if (msg.msg_type === 'deal') {
-        document.getElementById('hand').innerHTML = 'HAND: <br>'
-        for (var i = 0; i < msg.hand.length; i++) {
-          var c = msg.hand[i]
-          document.getElementById('hand').innerHTML += '<img onclick="play(' + "'" +  c + "'" + ')" class="card" src="cards/' + c + '.svg">'
-        }
       //} else if (msg.msg_type === 'pong') {
       //  console.log('pong!');
       }

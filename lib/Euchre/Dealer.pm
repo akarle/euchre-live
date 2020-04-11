@@ -52,7 +52,8 @@ our @EXPORT = qw(
 #           game => reference to current game object,
 #           name => username,
 #           seat => 0-3,
-#           ws   => websocket obj
+#           ws   => websocket obj,
+#           hand => cards in hand
 #       }
 #
 #   The players keyed on ws id is key (pun) because the closure in
@@ -165,10 +166,10 @@ sub join_game {
         # Add player object to Game
         # All players start as spectators and have to take a seat explicitly
         $p->{name} = $msg->{player_name};
+        $p->{hand} = [];
         $p->{game} = $GAMES{$id};
         push @{$GAMES{$id}->{spectators}}, $p;
 
-        # XXX: for fast prototyping we just broadcast gamestate
         broadcast_gamestate($GAMES{$id});
     }
 }
@@ -255,8 +256,7 @@ sub start_new_round {
     broadcast_gamestate($game); # includes trump_nominee
 }
 
-# Hands need to be sent as private messages. For now, we don't
-# keep them in the game state to simplify server logic
+# Deal the hands, leave the messaging to broadcast
 sub deal_players_hands {
     my ($game) = @_;
 
@@ -264,12 +264,7 @@ sub deal_players_hands {
     $game->{trump_nominee} = shift @$kiddeyA;
     for my $p (@{$game->{players}}) {
         my @hand = map { cid_to_name($_) } @{shift @$handsA};
-        $p->{ws}->send({ json =>
-            {
-                msg_type => 'deal',
-                hand => \@hand,
-            }
-        });
+        $p->{hand} = \@hand;
     }
 }
 
@@ -311,6 +306,20 @@ sub play_card {
     my $game = $p->{game};
     my $seat = $p->{seat};
 
+    # Make sure they have the card, and update their hand
+    my $found = 0;
+    for (my $i = 0; $i < scalar @{$p->{hand}}; $i++) {
+        if ($p->{hand}->[$i] eq $msg->{card}) {
+            splice(@{$p->{hand}}, $i, 1);
+            $found = 1;
+            last;
+        }
+    }
+    if (!$found) {
+        send_error($p, "You don't have that card!");
+        return;
+    }
+
     # Update the table and current player
     push @{$game->{table}}, $msg->{card};
     next_turn($game);
@@ -342,7 +351,6 @@ sub play_card {
         }
     }
 
-    # XXX: for fast prototyping we just broadcast gamestate
     broadcast_gamestate($game);
 }
 
@@ -362,11 +370,6 @@ sub signal_game_end {
 sub broadcast_gamestate {
     my ($game) = @_;
 
-    # Get all players in the game
-    my @all_ws = map { $_->{ws} }
-                 grep { defined }
-                 (@{$game->{players}}, @{$game->{spectators}});
-
     # Translate to human readable names for clients
     my @pnames = map { defined($_) ? $_->{name} : 'Empty' } @{$game->{players}};
     my @snames = map { $_->{name} } @{$game->{spectators}};
@@ -380,9 +383,15 @@ sub broadcast_gamestate {
         $msg->{trump_nominee} = cid_to_name($game->{trump_nominee});
     }
 
-    my $json = { msg_type => 'game_state', game => $msg };
-    for my $ws (@all_ws) {
-        $ws->send({ json => $json});
+    for my $p (@{$game->{players}}, @{$game->{spectators}}) {
+        next unless defined $p;
+
+        my $json = {
+            msg_type => 'game_state',
+            game => $msg,
+            hand => $p->{hand},
+        };
+        $p->{ws}->send({ json => $json });
     }
 }
 

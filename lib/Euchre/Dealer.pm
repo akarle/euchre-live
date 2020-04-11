@@ -318,6 +318,36 @@ sub play_card {
     my $game = $p->{game};
     my $seat = $p->{seat};
 
+    # Validate they follow suit if they CAN
+    if (defined $game->{led}) {
+        my %colors = (H => 'D', D => 'H', S => 'C', C => 'S');
+
+        # Build up a list of valid cards
+        my @followers = map { "$_$game->{led}" } qw(N T Q K A); # no jack
+        if ($game->{led} eq $game->{trump}) {
+            # Trump led, both jacks valid
+            push @followers, "J$game->{led}";
+            push @followers, "J$colors{$game->{led}}";
+        } elsif ($colors{$game->{led}} ne $game->{trump}) {
+            # Off-color, jack is OK
+            push @followers, "J$game->{led}";
+        } else {
+            # Played same color as trump, don't add jack
+        }
+        my $follower_re = join("|", @followers);
+
+        # Now validate that they are EITHER:
+        #   1) Following Suit
+        #   2) Can't follow suit
+        # By checking negative of both
+        if ($msg->{card} !~ /$follower_re/ &&
+            grep { $_ =~ /$follower_re/ } @{$p->{hand}}) {
+
+            send_error($p, "Have to follow suit!");
+            return;
+        }
+    }
+
     # Make sure they have the card, and update their hand
     my $found = 0;
     for (my $i = 0; $i < scalar @{$p->{hand}}; $i++) {
@@ -354,6 +384,7 @@ sub play_card {
         $game->{tricks}->[$winner_id]++;
         $game->{turn} = $winner_id;
         $game->{table} = [undef, undef, undef, undef];
+        $game->{led} = undef;
 
         my @num_tricks = grep { /^\d+$/ } @{$game->{tricks}};
         if (sum(@num_tricks) >= 5) {

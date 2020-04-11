@@ -6,7 +6,6 @@ package Euchre::Dealer;
 
 use List::Util qw(sum);
 
-use Euchre::Card;
 use Euchre::Game;
 
 require Exporter;
@@ -31,13 +30,13 @@ our @EXPORT = qw(
 #           tricks =>  [ p1, p2, p3, p4 ], # ints per player
 #           dealer => 0-3,
 #           turn => 0-3,
-#           trump => 0-3,
-#           led   => 0-3, # suit led
+#           trump => suit,
+#           led   => suit,
 #           caller => 0-3,
 #           table => [ c1, c2, c3, c4 ], # exactly 4, undef if not played
 #           score => [X, Y],
 #           phase => 'lobby', 'play', 'vote', 'end'
-#           trump_nominee => 0-23,
+#           trump_nominee => card,
 #           pass_count => 0-7,
 #           out_player => -1-3, -1 if none, else idx of "out player"
 #       }
@@ -267,8 +266,7 @@ sub deal_players_hands {
     my ($handsA, $kiddeyA) = deal();
     $game->{trump_nominee} = shift @$kiddeyA;
     for my $p (@{$game->{players}}) {
-        my @hand = map { cid_to_name($_) } @{shift @$handsA};
-        $p->{hand} = \@hand;
+        $p->{hand} = shift @$handsA;
     }
 }
 
@@ -288,9 +286,9 @@ sub order {
         } else {
             broadcast_gamestate($game);
         }
-    } elsif (defined suit_to_id($msg->{vote})) {
+    } elsif ($msg->{vote}) {
         # TODO: add hand/suit validation?
-        $game->{trump} = suit_to_id($msg->{vote});
+        $game->{trump} = $msg->{vote};
         $game->{caller} = $p->{seat};
         $game->{phase} = 'play';
         if ($msg->{loner}) {
@@ -336,20 +334,15 @@ sub play_card {
     if ($played_cards == 1) {
         # First card!
         my ($val, $suit) = split('', $msg->{card});
-        $game->{led} = suit_to_id($suit);
+        $game->{led} = $suit;
     }
 
     # Adjust num cards on table by if there's an out player
     my $out_adj = ($game->{out_player} >= 0 ? 1 : 0);
     if ($played_cards >= (4 - $out_adj)) {
         # End trick -- update tricks, clear table, and set current player
-        my @table = map { defined($_) ? cname_to_id($_) : -1 } @{$game->{table}};
+        my @table = map { defined($_) ? $_ : 'X' } @{$game->{table}};
         my $winner_id = trick_winner($game->{trump}, $game->{led}, @table);
-        use Data::Dumper; print Dumper($game->{table});
-        print Dumper($game->{trump});
-        print Dumper($game->{led});
-        print $winner_id;
-
 
         $game->{tricks}->[$winner_id]++;
         $game->{turn} = $winner_id;
@@ -397,17 +390,6 @@ sub broadcast_gamestate {
         players => \@pnames,
         spectators => \@snames,
     };
-
-    # XXX: this is getting out of hand -- just store them as chars already!
-    if (exists $game->{trump_nominee}) {
-        $msg->{trump_nominee} = cid_to_name($game->{trump_nominee});
-    }
-    if (exists $game->{trump} && $game->{trump} >= 0) {
-        $msg->{trump} = id_to_suit($game->{trump});
-    }
-    if (exists $game->{led} && $game->{led} >= 0) {
-        $msg->{led} = id_to_suit($game->{led});
-    }
 
     for my $p (@{$game->{players}}, @{$game->{spectators}}) {
         next unless defined $p;

@@ -7,7 +7,6 @@ use FindBin;
 use lib "$FindBin::Bin/../lib";
 
 use Euchre::Game;
-use Euchre::Card;
 use List::Util;
 use Test::More;
 
@@ -20,8 +19,17 @@ sub test_deal {
     push @cards, @{$_} for @{$handsA};
     is(scalar @cards, 20, '20 cards dealt to hands');
 
-    my @deck = sort { $a <=> $b } (@cards, @{$kiddey});
-    is_deeply(\@deck, [0 .. 23], 'All 24 cards unique');
+    my @all_suits = qw(H D S C);
+    my @all_cards = qw(N T J Q K A);
+    my @full_deck;
+    for my $c (@all_cards) {
+        for my $s (@all_suits) {
+            push @full_deck, "$c$s";
+        }
+    }
+
+    my @dealt = sort(@cards, @{$kiddey});
+    is_deeply(\@dealt, [sort @full_deck], 'All 24 cards dealt');
 
 }
 
@@ -38,11 +46,7 @@ sub test_trick_winner {
     );
 
     for my $t (@tests) {
-        # Unpack, transform, test
         my ($trump, $led, @cards) = @{$t->[0]};
-        $trump = suit_to_id($trump);
-        $led = suit_to_id($led);
-        @cards = map { cname_to_id($_) } @cards;
         is(trick_winner($trump, $led, @cards), $t->[1], $t->[2]);
     }
 

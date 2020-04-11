@@ -14,11 +14,30 @@ our @EXPORT = qw(
     score_round
 );
 
-use Euchre::Card;
 use List::Util qw(shuffle);
 
+# Numeric values for trick_winner
+our %SUIT_VALS = (H => 0, D => 1, S => 2, C => 3);
+our %CARD_VALS = (N => 0, T => 1, J => 2, Q => 3, K => 4, A => 5);
+
+our @FULL_DECK = qw(
+    NH TH JH QH KH AH
+    ND TD JD QD KD AD
+    NS TS JS QS KS AS
+    NC TC JC QC KC AC
+);
+
+sub card_value {
+    my ($c) = @_;
+    if ($c eq 'X') {
+        return -1;
+    }
+    my ($val, $suit) = split('', $c);
+    return (6 * $SUIT_VALS{$suit} + $CARD_VALS{$val});
+}
+
 sub deal {
-    my @cards = shuffle (0 .. 23);
+    my @cards = shuffle @FULL_DECK;
 
     my @hands;
     for (my $i = 0; $i < 4; $i++) {
@@ -26,24 +45,37 @@ sub deal {
     }
     my @kiddey = @cards[20 .. 23];
 
-
     return \@hands, \@kiddey;
 }
 
+# This is the only sub left that uses the original numeric
+# approach to tracking cards, due to the convenience of
+# sorting by a numeric value. To provide a consistent interace,
+# it takes in the character representations, but immediately
+# "lowers" them to the integer counterparts
+#
+#          0 1 2 3 4 5
+#   Suits: H D S C
+#   Cards: N T J Q K A
+#
+# A card of 'X' denotes a loner
 sub trick_winner {
     my ($trump, $led, @cards) = @_;
+
+    $trump = $SUIT_VALS{$trump};
+    $led = $SUIT_VALS{$led};
+    my @values = map { card_value($_) } @cards;
 
     # Assign each card a value based on trump + led, either
     #   Bower:    card + 50
     #   Trump:    card + 25 (including Bower)
     #   Suit Led: card
     #   Other:    0
-    my @values = @cards;
     for (my $i = 0; $i < @values; $i++) {
-        next if $cards[$i] < 0; # indicates loner
+        next if $values[$i] < 0; # indicates loner
 
         # Identify the card
-        my $c = $cards[$i];
+        my $c = $values[$i];
         my $suit = int($c / 6);
         my $is_jack = ($c % 6 == 2);
         my $is_tcolor = (int($suit / 2) == int($trump / 2));

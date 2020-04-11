@@ -32,6 +32,7 @@ our @EXPORT = qw(
 #           dealer => 0-3,
 #           turn => 0-3,
 #           trump => 0-3,
+#           led   => 0-3, # suit led
 #           caller => 0-3,
 #           table => [ c1, c2, c3, c4 ], # exactly 4, undef if not played
 #           score => [X, Y],
@@ -330,13 +331,25 @@ sub play_card {
     $game->{table}->[$seat] = $msg->{card};
     next_turn($game);
 
-    # Adjust num cards on table by if there's an out player
+
     my $played_cards = scalar grep { defined } @{$game->{table}};
+    if ($played_cards == 1) {
+        # First card!
+        my ($val, $suit) = split('', $msg->{card});
+        $game->{led} = suit_to_id($suit);
+    }
+
+    # Adjust num cards on table by if there's an out player
     my $out_adj = ($game->{out_player} >= 0 ? 1 : 0);
     if ($played_cards >= (4 - $out_adj)) {
         # End trick -- update tricks, clear table, and set current player
         my @table = map { defined($_) ? cname_to_id($_) : -1 } @{$game->{table}};
-        my $winner_id = trick_winner($game->{trump}, @table);
+        my $winner_id = trick_winner($game->{trump}, $game->{led}, @table);
+        use Data::Dumper; print Dumper($game->{table});
+        print Dumper($game->{trump});
+        print Dumper($game->{led});
+        print $winner_id;
+
 
         $game->{tricks}->[$winner_id]++;
         $game->{turn} = $winner_id;
@@ -385,8 +398,15 @@ sub broadcast_gamestate {
         spectators => \@snames,
     };
 
+    # XXX: this is getting out of hand -- just store them as chars already!
     if (exists $game->{trump_nominee}) {
         $msg->{trump_nominee} = cid_to_name($game->{trump_nominee});
+    }
+    if (exists $game->{trump} && $game->{trump} >= 0) {
+        $msg->{trump} = id_to_suit($game->{trump});
+    }
+    if (exists $game->{led} && $game->{led} >= 0) {
+        $msg->{led} = id_to_suit($game->{led});
     }
 
     for my $p (@{$game->{players}}, @{$game->{spectators}}) {

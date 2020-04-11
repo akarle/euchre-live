@@ -6,7 +6,7 @@ package Euchre::Card;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT = qw(cid_to_name cname_to_id suit_to_id);
+our @EXPORT = qw(cid_to_name cname_to_id suit_to_id id_to_suit);
 
 our @SUITS = qw(H D S C);
 our @CARDS = qw(N T J Q K A);
@@ -45,6 +45,16 @@ sub cname_to_id {
 
 sub suit_to_id {
     return $SUIT_IDS{$_[0]};
+}
+
+sub id_to_suit {
+    my ($id) = @_;
+    for my $k (keys %SUIT_IDS) {
+        if ($SUIT_IDS{$k} == $id) {
+            return $k;
+        }
+    }
+    die "assert: bad suit";
 }
 
 1;

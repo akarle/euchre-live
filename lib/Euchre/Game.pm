@@ -31,14 +31,13 @@ sub deal {
 }
 
 sub trick_winner {
-    my ($trump, @cards) = @_;
+    my ($trump, $led, @cards) = @_;
 
     # Assign each card a value based on trump + led, either
     #   Bower:    card + 50
     #   Trump:    card + 25 (including Bower)
     #   Suit Led: card
     #   Other:    0
-    my $led = int($cards[0] / 6);
     my @values = @cards;
     for (my $i = 0; $i < @values; $i++) {
         next if $cards[$i] < 0; # indicates loner

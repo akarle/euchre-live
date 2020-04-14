@@ -10,7 +10,7 @@ const client = new W3CWebSocket('ws://localhost:3000/play');
 let fc1, fc2, fc3 = null;
 
 
-const tableDebug = true;
+const tableDebug = false;
 
 class App extends React.Component {
 

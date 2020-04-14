@@ -6,9 +6,11 @@ import CardTable from './components/CardTable';
 import { w3cwebsocket as W3CWebSocket } from 'websocket';
 
 const client = new W3CWebSocket('ws://localhost:3000/play');
+// additional fakeClient sockets, only used on debug
+let fc1, fc2, fc3 = null;
 
 
-const tableDebug = false;
+const tableDebug = true;
 
 class App extends React.Component {
 
@@ -21,16 +23,17 @@ class App extends React.Component {
             tableName: initialTable,
             showTable: tableDebug
         };
-        if (tableDebug) { // on tableDebug send join w initialTable to server
-            // wait 1 second so socket establishes connection
+        if (tableDebug) { 
+            // on tableDebug send join plus add 3 fakeClient players that join+sit
+            fc1 = new W3CWebSocket('ws://localhost:3000/play');
+            fc2 = new W3CWebSocket('ws://localhost:3000/play');
+            fc3 = new W3CWebSocket('ws://localhost:3000/play');
+            // wait 1 second so sockets establish connection
             setTimeout(()=>{
-                client.send(JSON.stringify({
-                    action:'join_game',
-                    player_name: initialName,
-                    game_id: initialTable
-                }));
+                this.setFakeGame(initialName, initialTable);
             }, 1000);
         }
+        this.pingTimer = setInterval(() => { client.send(JSON.stringify({action:'ping'})) }, 5000);
     }
 
     setPlayerName = name => {
@@ -51,6 +54,16 @@ class App extends React.Component {
                 game_id: tableName
             }));
         });
+    }
+
+    setFakeGame = (initialName, initialTable) => {
+        client.send(JSON.stringify({ action:'join_game', player_name: initialName, game_id: initialTable }));
+        fc1.send(JSON.stringify({ action:'join_game', player_name: 'Betty', game_id: initialTable }));
+        fc2.send(JSON.stringify({ action:'join_game', player_name: 'CJ', game_id: initialTable }));
+        fc3.send(JSON.stringify({ action:'join_game', player_name: 'Dana', game_id: initialTable }));
+        fc1.send(JSON.stringify({ action:'take_seat', seat: 0 }));
+        fc2.send(JSON.stringify({ action:'take_seat', seat: 1 }));
+        fc3.send(JSON.stringify({ action:'take_seat', seat: 3 }));
     }
 
     render () {

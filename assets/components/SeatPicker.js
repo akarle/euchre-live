@@ -1,15 +1,29 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Button, Grid, Row, Column} from 'carbon-components-react';
-import {Package32, Export32} from '@carbon/icons-react';
+import {Button, Grid, Row, Column, Dropdown} from 'carbon-components-react';
+import {Package32, Export32, Play32} from '@carbon/icons-react';
 
 class SeatPicker extends React.Component {
 
     constructor(props) {
         super(props);
-        //this.state - unneeded?
-    }
+        this.state = {
+            startDealer: -2
+        }
+    };
 
+    allSeated = names => {
+        const matchIndex = names.findIndex(name => name == 'Empty');
+        return matchIndex == -1;
+    };
+
+    dealerChange = (e) => {
+        const { names } = this.props;
+        const selectIndex = names.findIndex(name => e.selectedItem == name);
+        this.setState({
+            startDealer: selectIndex
+        });
+    };
     
     tableSeat = (name, index) => {
         const taken = name != 'Empty';
@@ -37,7 +51,11 @@ class SeatPicker extends React.Component {
     }
 
     render () {
-        const {names} = this.props;
+        const { names } = this.props;
+        const { startDealer } = this.state;
+        const allSeated = this.allSeated(names);
+        const pickerNames = names.slice(0);
+        pickerNames.unshift('Random');
         return (
             <div id="seatPicker" className="seat__picker">
                 <Grid>
@@ -56,14 +74,36 @@ class SeatPicker extends React.Component {
                         {this.tableSeat(names[0], 0)}
                     </Row>
                 </Grid>
+                { allSeated && (
+                <div id="startGame" className="start__game">
+                    <Dropdown
+                        id="dealer__drop"
+                        className="dealer__drop"
+                        label="Choose Dealer..."
+                        size="xl"
+                        itemToElement={null}
+                        items={pickerNames}
+                        onChange={(event)=>this.dealerChange(event)}
+                    />
+                    <Button
+                    className="start__game__button"
+                    hasIconOnly={true}
+                    iconDescription="set name"
+                    tooltipPosition="bottom"
+                    disabled={startDealer < -1}
+                    onClick={()=>{this.props.handleStart(startDealer)}}
+                    renderIcon={Play32}>Play! </Button> 
+                </div>
+                )}
             </div>
-        )
+        );
     }
 }
 SeatPicker.propTypes = {
     mySeat: PropTypes.number,
     names: PropTypes.arrayOf(PropTypes.string),
     handleSit: PropTypes.func,
-    handleStand: PropTypes.func
+    handleStand: PropTypes.func,
+    handleStart: PropTypes.func
 }
 export default SeatPicker;

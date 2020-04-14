@@ -50,6 +50,32 @@
     align-items: center;
     height: 20vh;
 }
+.start__game {
+    display: flex;
+    .bx--dropdown__wrapper {
+        width: -webkit-fill-available;
+    }
+}
+.player__name {
+    font-size: 1.3rem;
+}
+.tm__left {
+    // background-color: rgb(217, 249, 255);
+    .player__name {
+        float: right;
+    }
+}
+.tt__center {
+    // background-color: rgb(217, 249, 255);
+    text-align: center;
+}
+
+.mh__card {
+    width: 100px;
+}
+.mh__card__row {
+    display: flex;
+}
 
 .table__header {
     height: 10vh;
@@ -64,36 +90,33 @@
     height: 20vh;
 }
 
-.hd__left {
-    background-color: rosybrown;
-}
-.hd__right {
-    background-color: skyblue;
-}
-.tt__left {
-    background-color: slategray;
-}
-.tt__center {
-    background-color: lightgreen;
-}
-.tt__right {
-    background-color: lightsalmon;
-}
-.tm__left {
-    background-color: lightskyblue;
-}
+
+
+// .tm__right {
+//     background-color: rgb(217, 249, 255);
+// }
+// .tb__center {
+//     background-color: rgb(217, 249, 255);
+// }
+
+// .tb__left {
+//     background-color: slategray;
+// }
+// .tb__right {
+//     background-color: lightsalmon;
+// }
+// .hd__left {
+//     background-color: rosybrown;
+// }
+// .hd__right {
+//     background-color: skyblue;
+// }
+// .tt__left {
+//     background-color: slategray;
+// }
+// .tt__right {
+//     background-color: lightsalmon;
+// }
 // .tm__center {
 //     background-color: lightpink;
 // }
-.tm__right {
-    background-color: lightgreen;
-}
-.tb__left {
-    background-color: slategray;
-}
-.tb__center {
-    background-color: lightgreen;
-}
-.tb__right {
-    background-color: lightsalmon;
-}

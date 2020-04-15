@@ -13,11 +13,13 @@
   <div id="content"></div>
   <script>
     var ws = new WebSocket('ws://localhost:3000/play');
+    var GAME_PHASE = ''
     ws.onmessage = function (event) { 
       msg = JSON.parse(event.data);
       if (msg.msg_type !== 'pong') { console.log(msg) }
 
       if (msg.msg_type === 'game_state') {
+        GAME_PHASE = msg.game.phase;
         gameState = '<br>Game:          ' + msg.game.id + '<br>' +
           'Players:       ' + msg.game.players + '<br>' +
           'Spectators:    ' + msg.game.spectators + '<br>' +
@@ -85,7 +87,11 @@
       ws.send(JSON.stringify({action:'order', vote: 'pass'}))
     }
     function play(card) {
-      ws.send(JSON.stringify({action:'play_card', card: card}))
+      if (GAME_PHASE === 'dealer_swap') {
+        ws.send(JSON.stringify({action:'dealer_swap', card: card}))
+      } else {
+        ws.send(JSON.stringify({action:'play_card', card: card}))
+      }
     }
 
     window.setInterval(() => { ws.send(JSON.stringify({action:'ping'})) }, 5000);

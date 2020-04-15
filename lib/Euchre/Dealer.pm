@@ -107,6 +107,7 @@ sub handle_msg {
 
         # Gameplay
         order       => [\&order, 'vote', "Not time for a vote", 1],
+        dealer_swap => [\&dealer_swap, 'dealer_swap', "Can't swap with the Kitty now", 1],
         play_card   => [\&play_card, 'play', "Can't play cards yet", 1],
     );
 
@@ -323,13 +324,24 @@ sub order {
         # Accept the vote...
         $game->{trump} = $msg->{vote};
         $game->{caller} = $p->{seat};
-        $game->{phase} = 'play';
+        if ($game->{pass_count} < 4) {
+            # Setting phase will block all other play actions until the
+            # dealer is done swapping. Do still broadcast so dealer knows!
+            # Piggy back on the handle_msg turn validation by temporarily
+            # setting "turn" to dealer.
+            $game->{phase} = 'dealer_swap';
+            $game->{turn} = $game->{dealer};
+        } else {
+            # Get right to it!
+            $game->{phase} = 'play';
+            reset_turn($game);
+        }
+
         if ($msg->{loner}) {
             my $partner_seat = ($p->{seat} + 2) % 4;
             $game->{out_player} = $partner_seat;
             $game->{tricks}->[$partner_seat] = 'X';
         }
-        reset_turn($game);
         sort_hands($game);
         broadcast_gamestate($game);
     } else {
@@ -375,19 +387,7 @@ sub play_card {
         }
     }
 
-    # Make sure they have the card, and update their hand
-    my $found = 0;
-    for (my $i = 0; $i < scalar @{$p->{hand}}; $i++) {
-        if ($p->{hand}->[$i] eq $msg->{card}) {
-            splice(@{$p->{hand}}, $i, 1);
-            $found = 1;
-            last;
-        }
-    }
-    if (!$found) {
-        send_error($p, "You don't have that card!");
-        return;
-    }
+    take_card($p, $msg->{card}) or return;
 
     # Update the table and current player
     $game->{table}->[$seat] = $msg->{card};
@@ -440,6 +440,23 @@ sub signal_game_end {
     $game->{phase} = 'end';
 }
 
+
+# Based on validation, we KNOW $p is the dealer
+# msg.card = card to swap
+sub dealer_swap {
+    my ($p, $msg) = @_;
+
+    my $game = $p->{game};
+
+    # Exchange the cards
+    take_card($p, $msg->{card}) or return;
+    push @{$p->{hand}}, $game->{trump_nominee};
+
+    # Start the game
+    $game->{phase} = 'play';
+    reset_turn($game);
+    broadcast_gamestate($game);
+}
 
 # XXX: The most simplest (bulkiest) message we can send is to just
 # broadcast the gamestate to all clients. This will be our temporary
@@ -509,6 +526,22 @@ sub sort_hands {
         my @sorted = sort { card_value($a, $t) <=> card_value($b, $t) } @{$p->{hand}};
         $p->{hand} = \@sorted;
     }
+}
+
+# Returns 0 or 1 on success
+sub take_card {
+    my ($p, $card) = @_;
+
+    # Make sure they have the card, and update their hand
+    for (my $i = 0; $i < scalar @{$p->{hand}}; $i++) {
+        if ($p->{hand}->[$i] eq $card) {
+            splice(@{$p->{hand}}, $i, 1);
+            return 1;
+        }
+    }
+
+    send_error($p, "You don't have that card!");
+    return 0;
 }
 
 1;

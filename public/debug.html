@@ -73,7 +73,8 @@
       ws.send(JSON.stringify({action:'stand_up'}))
     }
     function start_game() {
-      ws.send(JSON.stringify({action:'start_game'}))
+      seat = document.getElementById('start_seat').value;
+      ws.send(JSON.stringify({action:'start_game', start_seat: seat}))
     }
     function vote(a) {
       ws.send(JSON.stringify({action:'order', vote: order_suit, loner: a}))
@@ -101,6 +102,8 @@
  <button onclick="stand()">Stand</button>
  <br>
  <button onclick="start_game()">Start Game</button>
+ <label for="start_seat">Start Seat:</label>
+ <input type="number" id="start_seat">
  <br>
 
  <br><br>

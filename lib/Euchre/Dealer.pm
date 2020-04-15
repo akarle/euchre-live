@@ -229,12 +229,23 @@ sub stand_up {
 
 }
 
+# start_seat: -1 - 3
 sub start_game {
-    my ($p) = @_;
+    my ($p, $msg) = @_;
     my $game = $p->{game};
 
     if (num_players($game->{id}) < 4) {
         send_error($p, "Can't start with empty seats!");
+        return;
+    }
+
+    if (!defined $msg->{start_seat} || $msg->{start_seat} < 0) {
+        $game->{dealer} = int(rand(4));
+    } elsif ($msg->{start_seat} < 3) {
+        # One less since start_new_round will rotate
+        $game->{dealer} = ($msg->{start_seat} - 1);
+    } else {
+        send_error($p, "Bad seat number");
         return;
     }
 

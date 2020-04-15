@@ -241,7 +241,7 @@ sub start_game {
 
     if (!defined $msg->{start_seat} || $msg->{start_seat} < 0) {
         $game->{dealer} = int(rand(4));
-    } elsif ($msg->{start_seat} < 3) {
+    } elsif ($msg->{start_seat} < 4) {
         # One less since start_new_round will rotate
         $game->{dealer} = ($msg->{start_seat} - 1);
     } else {

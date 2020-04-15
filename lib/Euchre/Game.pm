@@ -12,6 +12,7 @@ our @EXPORT = qw(
     deal
     trick_winner
     score_round
+    card_value
 );
 
 use List::Util qw(shuffle);
@@ -27,13 +28,50 @@ our @FULL_DECK = qw(
     NC TC JC QC KC AC
 );
 
-sub card_value {
+sub raw_card_value {
     my ($c) = @_;
     if ($c eq 'X') {
         return -1;
     }
     my ($val, $suit) = split('', $c);
     return (6 * $SUIT_VALS{$suit} + $CARD_VALS{$val});
+}
+
+sub card_value {
+    my ($c, $trump, $led) = @_;
+
+    # Lower to numeric value
+    $trump = $SUIT_VALS{$trump};
+    my $cval = raw_card_value($c);
+
+    return $cval if $cval < 0;
+
+    # Gather more data on it
+    my $suit = int($cval / 6);
+    my $is_jack = ($cval % 6 == 2);
+    my $is_trump = ($suit == $trump);
+    my $is_tcolor = (int($suit / 2) == int($trump / 2));
+    my $is_bower = ($is_jack && $is_tcolor);
+
+    # To create a absolute ordering we give
+    # +50 -- all bowers
+    # +25 -- all trump (not incl. J of color)
+    # +0  -- all others (use raw value)
+    $cval += 50 if $is_bower;
+    $cval += 25 if $is_trump;
+
+    # If we are ranking based on suit led, all throwoffs are
+    # considered value 0
+    # NOTE: not always defined, i.e. when sorting hand
+    if (defined $led) {
+        $led = $SUIT_VALS{$led};
+        if ($suit != $led && !($is_trump || $is_bower)) {
+            # throwoff -> set value to zero
+            $cval = 0;
+        }
+    }
+
+    return $cval;
 }
 
 sub deal {
@@ -62,38 +100,7 @@ sub deal {
 sub trick_winner {
     my ($trump, $led, @cards) = @_;
 
-    $trump = $SUIT_VALS{$trump};
-    $led = $SUIT_VALS{$led};
-    my @values = map { card_value($_) } @cards;
-
-    # Assign each card a value based on trump + led, either
-    #   Bower:    card + 50
-    #   Trump:    card + 25 (including Bower)
-    #   Suit Led: card
-    #   Other:    0
-    for (my $i = 0; $i < @values; $i++) {
-        next if $values[$i] < 0; # indicates loner
-
-        # Identify the card
-        my $c = $values[$i];
-        my $suit = int($c / 6);
-        my $is_jack = ($c % 6 == 2);
-        my $is_tcolor = (int($suit / 2) == int($trump / 2));
-        my $is_bower = ($is_jack && $is_tcolor);
-
-        # Assign it a value
-        if ($is_bower) {
-            $values[$i] += 50;
-        }
-        if ($suit == $trump) {
-            $values[$i] += 25;
-        } elsif ($suit != $led && !$is_bower) {
-            # throwoff -> set value to zero
-            $values[$i] = 0;
-        } else {
-            # non-trump led card -> use regular value
-        }
-    }
+    my @values = map { card_value($_, $trump, $led) } @cards;
 
     my $winning_ind = -1;
     my $winning_val = -1;

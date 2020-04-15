@@ -35,11 +35,12 @@ sub test_deal {
 
 sub test_trick_winner {
     my @tests = (
-        # [Trump, Cards], Winner Idx, Desc
+        # [Trump, Led, Cards], Winner Idx, Desc
         [['H', 'H', 'NH', 'TS', 'AS', 'QS'], 0, 'Trump suit led'],
         [['D', 'H', 'JH', 'TS', 'JD', 'QD'], 2, 'Jack trump beats all'],
         [['D', 'C', 'NC', 'JH', 'AD', 'AC'], 1, 'Jack color beats all others'],
         [['S', 'S', 'NS', 'JH', 'AD', 'JC'], 3, 'Jack color beats all others (2)'],
+        [['S', 'H', 'NS', 'JH', 'AD', 'AH'], 0, 'Trump beats ace'],
         [['C', 'H', 'NH', 'JH', 'QH', 'AH'], 3, 'No trump, highest of led'],
         [['C', 'H', 'NH', 'JH', 'AH'], 2, 'No trump, highest of led, 3 cards'],
         [['C', 'S', 'NH', 'JH', 'AH', 'NS'], 3, 'No trump, suit led wins'],

@@ -146,7 +146,7 @@ sub join_game {
             spectators => [],
             turn => -1,
             dealer => -1,
-            trump => -1,
+            trump => undef,
             tricks => [0, 0, 0, 0],
             table => [undef, undef, undef, undef],
             caller => -1,
@@ -265,10 +265,10 @@ sub start_new_round {
     # Shift dealer and deal
     $game->{dealer} = ($game->{dealer} + 1) % 4;
     $game->{table} = [undef, undef, undef, undef];
+    $game->{trump} = undef;
     $game->{tricks} = [0,0,0,0];
     $game->{out_player} = -1;
     deal_players_hands($game);
-
 
     # Signal vote of player next to dealer...
     reset_turn($game);
@@ -286,6 +286,8 @@ sub deal_players_hands {
     for my $p (@{$game->{players}}) {
         $p->{hand} = shift @$handsA;
     }
+
+    sort_hands($game);
 }
 
 
@@ -315,6 +317,7 @@ sub order {
             $game->{tricks}->[$partner_seat] = 'X';
         }
         reset_turn($game);
+        sort_hands($game);
         broadcast_gamestate($game);
     } else {
         send_error($p, "Bad vote");
@@ -482,6 +485,17 @@ sub reset_turn {
     my ($game) = @_;
     $game->{turn} = $game->{dealer};
     next_turn($game);
+}
+
+# We only need this when trump suit voted, not every broadcast
+sub sort_hands {
+    my ($game) = @_;
+
+    my $t = $game->{trump};
+    for my $p (@{$game->{players}}) {
+        my @sorted = sort { card_value($a, $t) <=> card_value($b, $t) } @{$p->{hand}};
+        $p->{hand} = \@sorted;
+    }
 }
 
 1;

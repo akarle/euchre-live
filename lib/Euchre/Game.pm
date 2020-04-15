@@ -41,12 +41,16 @@ sub card_value {
     my ($c, $trump, $led) = @_;
 
     # Lower to numeric value
-    $trump = $SUIT_VALS{$trump};
     my $cval = raw_card_value($c);
 
     return $cval if $cval < 0;
 
+    # If neither trump or led defined, we just use raw_value
+    # (useful for initial deal hand orderings)
+    return $cval unless defined $trump;
+
     # Gather more data on it
+    $trump = $SUIT_VALS{$trump};
     my $suit = int($cval / 6);
     my $is_jack = ($cval % 6 == 2);
     my $is_trump = ($suit == $trump);

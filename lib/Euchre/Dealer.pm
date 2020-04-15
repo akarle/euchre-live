@@ -263,7 +263,7 @@ sub start_new_round {
     my ($game) = @_;
 
     # Shift dealer and deal
-    $game->{dealer} = ($game->{dealer} + 1 % 4);
+    $game->{dealer} = ($game->{dealer} + 1) % 4;
     $game->{table} = [undef, undef, undef, undef];
     $game->{tricks} = [0,0,0,0];
     $game->{out_player} = -1;

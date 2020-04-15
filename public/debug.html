@@ -31,7 +31,6 @@
 
         if (typeof msg.game.trump_nominee !== 'undefined') {
           gameState += 'Trump Nominee: ' + '<img class="card" src="cards/' + msg.game.trump_nominee + '.svg"><br>'
-          order_suit = msg.game.trump_nominee.substring(1,2);
         }
 
         document.getElementById('hand').innerHTML = 'HAND: <br>'
@@ -78,6 +77,8 @@
       ws.send(JSON.stringify({action:'start_game', start_seat: seat}))
     }
     function vote(a) {
+      order_suit = document.getElementById('order_suit').value;
+      console.log(order_suit);
       ws.send(JSON.stringify({action:'order', vote: order_suit, loner: a}))
     }
     function pass() {
@@ -115,6 +116,12 @@
  <div id="hand">No cards in hand</div>
  <br>
  <button onclick="vote(0)">Order</button>
+ <select id="order_suit">
+   <option value="H">Hearts</option>
+   <option value="D">Diamonds</option>
+   <option value="S">Spades</option>
+   <option value="C">Clubs</option>
+ </select>
  <button onclick="vote(1)">Loner</button>
  <button onclick="pass()">Pass</button>
  <br><br>

@@ -307,7 +307,20 @@ sub order {
             broadcast_gamestate($game);
         }
     } elsif ($msg->{vote}) {
-        # TODO: add hand/suit validation?
+        # Validate its an OK vote
+        if ($game->{pass_count} < 4) {
+            if ($game->{trump_nominee} !~ /$msg->{vote}/) {
+                send_error($p, "Must vote on kitty card's suit");
+                return;
+            }
+        } else {
+            if ($game->{trump_nominee} =~ /$msg->{vote}/) {
+                send_error($p, "Can't vote for kitty card suit after turned down");
+                return;
+            }
+        }
+
+        # Accept the vote...
         $game->{trump} = $msg->{vote};
         $game->{caller} = $p->{seat};
         $game->{phase} = 'play';

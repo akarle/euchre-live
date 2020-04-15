@@ -434,10 +434,16 @@ sub broadcast_gamestate {
     # Translate to human readable names for clients
     my @pnames = map { defined($_) ? $_->{name} : 'Empty' } @{$game->{players}};
     my @snames = map { $_->{name} } @{$game->{spectators}};
+
+    # Hand lengths are nice for rendering in the clients
+    my @hand_lengths =
+        map { defined($_) ? scalar @{$_->{hand}} : 0 } @{$game->{players}};
+
     my $msg = {
         %$game,
         players => \@pnames,
         spectators => \@snames,
+        hand_lengths => \@hand_lengths,
     };
 
     for my $p (@{$game->{players}}, @{$game->{spectators}}) {

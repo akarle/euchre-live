@@ -57,12 +57,60 @@
     }
 }
 .player__name {
+    font-size: 1.6rem;
+    font-weight: bold;
+}
+.play__hinfo {
     font-size: 1.3rem;
+    min-height: 20px;
+}
+.play__tinfo {
+    font-size: 1.3rem;
+    min-height: 20px;
+}
+.partner__stack{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.partner__info {
+    display: flex;
+    justify-content: space-evenly;
+}
+.my__stack {
+    float: right;
+    font-size: 1.5rem;
+}
+.mh__card {
+    width: 100px;
+}
+.mh__card__row {
+    display: flex;
+}
+.hid__card {
+    width: 30px;
+}
+.hid__card__row {
+    display: flex;
+}
+.vert__stack {
+    display: flex;
+    flex-direction: column;
+    .hid__card__div {
+        height: 32px;
+    }
+    .hid__card__row {
+        flex-direction: column;
+    }
+    .hid__card {
+        transform: rotate(90deg);
+    }
 }
 .tm__left {
     // background-color: rgb(217, 249, 255);
-    .player__name {
+    .vert__stack {
         float: right;
+        align-items: flex-end;
     }
 }
 .tt__center {
@@ -70,11 +118,40 @@
     text-align: center;
 }
 
-.mh__card {
-    width: 100px;
+// .tm__right {
+//     background-color: rgb(217, 249, 255);
+// }
+// .tb__center {
+//     background-color: rgb(217, 249, 255);
+// }
+
+.trump__card {
+    width: 80px;
 }
-.mh__card__row {
+.trump__outer {
+    height: 100%;
+    width: 100%;
+}
+.trump__holder {
+    height: 100%;
     display: flex;
+    align-items: center;
+}
+.trump__holder.me {
+    flex-direction: column;
+    justify-content: flex-end;
+}
+.trump__holder.partner {
+    flex-direction: column;
+    justify-content: flex-start;
+}
+.trump__holder.left {
+    flex-direction: row;
+    justify-content: flex-start;
+}
+.trump__holder.right {
+    flex-direction: row;
+    justify-content: flex-end;
 }
 
 .table__header {
@@ -90,14 +167,6 @@
     height: 20vh;
 }
 
-
-
-// .tm__right {
-//     background-color: rgb(217, 249, 255);
-// }
-// .tb__center {
-//     background-color: rgb(217, 249, 255);
-// }
 
 // .tb__left {
 //     background-color: slategray;

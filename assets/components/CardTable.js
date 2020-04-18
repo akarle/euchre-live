@@ -5,6 +5,9 @@ import {Button, Grid, Row, Column} from 'carbon-components-react';
 import {Logout32} from '@carbon/icons-react';
 import SeatPicker from './SeatPicker';
 import MainHand from './MainHand';
+import HiddenHand from './HiddenHand';
+
+const trumpPlacement = ['me', 'left', 'partner', 'right'];
 
 export default class CardTable extends React.Component {
 
@@ -13,11 +16,15 @@ export default class CardTable extends React.Component {
         this.state = {
             playerNames: [],
             mySeat: -1,
+            myCards: [],
+            myHandInfo: 'mhi',
+            myTurnInfo: 'mti',
             phase: 'lobby',
-            left: { name: '', seat: -1 },
-            partner: { name: '', seat: -1 },
-            right: { name: '', seat: -1 },
-            myCards: []
+            left: { name: '', seat: -1, handInfo: '', turnInfo: ' ' },
+            partner: { name: '', seat: -1, handInfo: '', turnInfo: ' ' },
+            right: { name: '', seat: -1, handInfo: '', turnInfo: '' },
+            trumpPlace: '',
+            trumpNom: ''
         };
     };
 
@@ -61,7 +68,7 @@ export default class CardTable extends React.Component {
 
     processVote = (msg) => {
         if (this.state.phase == 'lobby') {
-            this.gameStartSetup();
+            this.gameStartSetup(msg);
         }
         this.setState({
             phase: 'vote',
@@ -69,24 +76,42 @@ export default class CardTable extends React.Component {
         });
     };
 
-    gameStartSetup = () => {
+    gameStartSetup = (msg) => {
         const { playerNames, mySeat } = this.state;
+        let handInfo = [' ', ' ', ' ', ' '];
+        let turnInfo = [' ', ' ', ' ', ' '];
+        handInfo[msg.game.dealer] = 'Dealer';
+        turnInfo[msg.game.turn] = 'trump?';
         const leftSeat = (mySeat + 1) % 4;
         const partnerSeat = (mySeat + 2) % 4;
         const rightSeat = (mySeat + 3) % 4;
+        let tpIndex = msg.game.dealer - mySeat;
+        tpIndex = (tpIndex < 0) ? tpIndex + 4 : tpIndex;
+        const trumpPlace = trumpPlacement[tpIndex];
+        console.log('trumpPlace:', trumpPlace);
         this.setState ({
             left : {
                 name: playerNames[leftSeat],
-                seat: leftSeat
+                seat: leftSeat,
+                handInfo: handInfo[leftSeat],
+                turnInfo: turnInfo[leftSeat]
             },
             partner : {
                 name: playerNames[partnerSeat],
-                seat: partnerSeat
+                seat: partnerSeat,
+                handInfo: handInfo[partnerSeat],
+                turnInfo: turnInfo[partnerSeat]
             },
             right : {
                 name: playerNames[rightSeat],
-                seat: rightSeat
-            }
+                seat: rightSeat,
+                handInfo: handInfo[rightSeat],
+                turnInfo: turnInfo[rightSeat]
+            },
+            myHandInfo : handInfo[mySeat],
+            myTurnInfo : turnInfo[mySeat],
+            trumpPlace : trumpPlace,
+            trumpNom: msg.game.trump_nominee
         });
     };
 
@@ -107,7 +132,7 @@ export default class CardTable extends React.Component {
 
     sendStart = (startDealer) => {
         this.props.client.send(JSON.stringify({
-            action: 'start_game'
+            action: 'start_game', start_seat: startDealer
         }))
         console.log('start game, dealer = ', startDealer);
     };
@@ -117,11 +142,14 @@ export default class CardTable extends React.Component {
     }
 
     render () {
-        const { playerNames, mySeat, phase, left, partner, right, myCards } = this.state;
+        const { playerNames, mySeat, phase, left, partner, right, myCards,
+                myHandInfo, myTurnInfo, trumpPlace, trumpNom } = this.state;
         const {name, tableName} = this.props;
         const showSeatPicker = phase == 'lobby';
         const showTrump = phase == 'vote';
         const welcomeMsg = 'Welcome to the ' + tableName + ' table, ' + name + '!';
+        const tcp = "trump__holder " + trumpPlace;
+        const trumpImage = 'cards/' + trumpNom + '.svg';
         return (
             <div id="table">
                 <Grid>
@@ -145,14 +173,30 @@ export default class CardTable extends React.Component {
                         <Column className="tt__left" sm={1}>
                         </Column>
                         <Column className="tt__center" sm={2}>
-                            <div className="player__name">{partner.name}</div>
+                            {!showSeatPicker && (
+                            <div className="partner__stack">
+                                <div className="player__name">{partner.name}</div>
+                                <div className="partner__info">
+                                    <div className="play__hinfo">{partner.handInfo}</div>
+                                    <div className="play__tinfo">{partner.turnInfo}</div>
+                                </div>
+                                <HiddenHand
+                                    numCards={5} />
+                            </div>)}
                         </Column>
                         <Column className="tt__right" sm={1}>
                         </Column>
                     </Row>
                     <Row className="table__mid">
                         <Column className="tm__left" sm={1}>
-                            <div className="player__name">{left.name}</div>
+                            {!showSeatPicker && (
+                            <div className="vert__stack">
+                                <div className="player__name">{left.name}</div>
+                                <div className="play__hinfo">{left.handInfo}</div>
+                                <div className="play__tinfo">{left.turnInfo}</div>
+                                <HiddenHand
+                                    numCards={5} />
+                            </div>)}
                         </Column>
                         <Column className="tm__center" sm={2}>
                             {showSeatPicker && (
@@ -163,15 +207,35 @@ export default class CardTable extends React.Component {
                                 mySeat={mySeat}
                                 handleStart={this.sendStart}
                             />)}
+                            { showTrump && (
+                                <div className="trump__outer">
+                                    <div className={tcp}>
+                                        <img className="trump__card" src={trumpImage} />
+                                    </div>
+                                </div>
+                            )}
                         </Column>
                         <Column className="tm__right" sm={1}>
-                            <div className="player__name">{right.name}</div>
+                            {!showSeatPicker && (
+                            <div className="vert__stack">
+                                <div className="player__name">{right.name}</div>
+                                <div className="play__hinfo">{right.handInfo}</div>
+                                <div className="play__tinfo">{right.turnInfo}</div>
+                                <HiddenHand
+                                    numCards={5} />
+                            </div>)}
                         </Column>
                     </Row>
                     <Row className="table__bot">
                         <Column className="tb__left" sm={1}>
+                            {!showSeatPicker && (
+                                <div className="my__stack">
+                                    <div className="my__hinfo">You: {myHandInfo}</div>
+                                    <div className="my__tinfo">{myTurnInfo}</div>
+                                </div>
+                            )}
                         </Column>
-                        <Column className="tb__center" sm={2}>
+                        <Column className="tb__center" sm={3}>
                             {!showSeatPicker && (
                                 <MainHand
                                     cards={myCards}
@@ -179,8 +243,8 @@ export default class CardTable extends React.Component {
                                 />
                             )}
                         </Column>
-                        <Column className="tb__right" sm={1}>
-                        </Column>
+                        {/* <Column className="tb__right" sm={1}>
+                        </Column> */}
                     </Row>
                 </Grid>
                 

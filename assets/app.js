@@ -63,7 +63,7 @@ class App extends React.Component {
         fc3.send(JSON.stringify({ action:'join_game', player_name: 'Dana', game_id: initialTable }));
         fc1.send(JSON.stringify({ action:'take_seat', seat: 0 }));
         fc2.send(JSON.stringify({ action:'take_seat', seat: 1 }));
-        fc3.send(JSON.stringify({ action:'take_seat', seat: 3 }));
+        fc3.send(JSON.stringify({ action:'take_seat', seat: 2 }));
     }
 
     render () {

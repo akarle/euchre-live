@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Button, Link} from 'carbon-components-react';
+import { Link } from 'carbon-components-react';
 
 class MainHand extends React.Component {
 

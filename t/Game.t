@@ -69,8 +69,16 @@ sub test_score_round {
     }
 }
 
+sub test_card_value {
+    ok(card_value('AH', 'H') < card_value('JH', 'H'), 'right bower highest');
+    ok(card_value('AH', 'H') < card_value('JD', 'H'), 'left bower higher than ace');
+    ok(card_value('JH', 'H') > card_value('JD', 'H'), 'left bower lower');
+    ok(card_value('ND', 'H', 'D') > card_value('TC', 'H', 'D'), 'throwoff');
+}
+
 test_deal();
 test_trick_winner();
 test_score_round();
+test_card_value();
 
 done_testing();

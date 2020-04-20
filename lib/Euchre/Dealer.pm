@@ -451,6 +451,7 @@ sub dealer_swap {
     # Exchange the cards
     take_card($p, $msg->{card}) or return;
     push @{$p->{hand}}, $game->{trump_nominee};
+    sort_hands($game);
 
     # Start the game
     $game->{phase} = 'play';

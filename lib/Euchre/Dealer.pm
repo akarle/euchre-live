@@ -134,6 +134,7 @@ sub pong {
 
 # player_name
 # game_id
+# force
 sub join_game {
     my ($p, $msg) = @_;
 
@@ -156,31 +157,36 @@ sub join_game {
         };
     }
 
-    # Handle full game case
-    if ($GAMES{$id}->{phase} ne 'lobby') {
-        send_error($p, 'Game already in progress');
-    } else {
-        my $game = $GAMES{$id};
+    my $game = $GAMES{$id};
 
-        # Make sure name is unique to game
-        my @all_names = map { $_->{name} }
-                        grep { defined }
-                        (@{$game->{players}}, @{$game->{spectators}});
+    # Make sure name is unique to game
+    my @all_names = map { $_->{name} }
+                    grep { defined }
+                    (@{$game->{players}}, @{$game->{spectators}});
 
-        if (grep { $_ eq $msg->{player_name} } @all_names) {
-            send_error($p, 'Username not unique');
+    my $player_exists = grep { $_ eq $msg->{player_name} } @all_names;
+
+    if ($player_exists) {
+        if (!$msg->{force}) {
+            send_error($p, 'Username not unique; is this you?');
             return;
         }
-
+        $p->{name} = $msg->{player_name};
+        swap_player($game, $p, 'players') || swap_player($game, $p, 'spectators');
+    } else {
+        if ($game->{phase} ne 'lobby') {
+            send_error($p, 'Cant join as new player mid game');
+            return;
+        }
         # Add player object to Game
         # All players start as spectators and have to take a seat explicitly
         $p->{name} = $msg->{player_name};
         $p->{hand} = [];
         $p->{game} = $game;
         push @{$game->{spectators}}, $p;
-
-        broadcast_gamestate($game);
     }
+
+    broadcast_gamestate($game);
 }
 
 # seat
@@ -542,6 +548,31 @@ sub take_card {
     }
 
     send_error($p, "You don't have that card!");
+    return 0;
+}
+
+# Returns 0 or 1 on success
+sub swap_player {
+    my ($game, $new_p, $list) = @_;
+
+    for (my $i = 0; $i < @{$game->{$list}}; $i++) {
+        next unless defined $game->{$list}->[$i]; # undef potentially in lobby
+        if ($game->{$list}->[$i]->{name} eq $new_p->{name}) {
+            # Ye ole switcheroo
+            # Don't delete the old player cuz we need to preserve the hand, etc.
+            # Just swap out the WS and ID, and update PLAYERS
+            my $old_id = $game->{$list}->[$i]->{id};
+            $game->{$list}->[$i]->{id} = $new_p->{id};
+            $game->{$list}->[$i]->{ws} = $new_p->{ws};
+            $PLAYERS{$new_p->{id}} = $game->{$list}->[$i];
+
+            # NOTE: For now, don't delete from %PLAYERS here...
+            # the old WS may still be playing ping/pong, so we just
+            # let them hang out until they close themselves or go
+            # inactive (and we time them out => delete from %PLAYERS)
+            return 1;
+        }
+    }
     return 0;
 }
 

@@ -7,6 +7,9 @@
        img.card {
         width: 100px;
        }
+       img.prev_card {
+        width: 20px;
+       }
     </style>
   </head>
 <body>
@@ -52,6 +55,16 @@
           }
         } else {
           document.getElementById('table').innerHTML = 'No cards on table'
+        }
+        if (msg.game.prev_table.length) {
+          document.getElementById('prev_table').innerHTML = 'Last Trick: '
+          for (var i = 0; i < msg.game.prev_table.length; i++) {
+            var c = msg.game.prev_table[i]
+            if (c === null) {
+              c = '2B' // show back
+            }
+            document.getElementById('prev_table').innerHTML += '<img class="prev_card" src="cards/' + c + '.svg">'
+          }
         }
         document.getElementById('game').innerHTML = gameState
       } else if (msg.msg_type === 'error') {
@@ -119,6 +132,8 @@
  <div id="game">Not in a game</div>
  <br><br>
  <div id="table">No cards on table</div>
+ <br> <br>
+ <div id="prev_table"></div>
  <br> <br>
  <div id="hand">No cards in hand</div>
  <br>

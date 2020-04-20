@@ -34,6 +34,7 @@ our @EXPORT = qw(
 #           led   => suit,
 #           caller => 0-3,
 #           table => [ c1, c2, c3, c4 ], # exactly 4, undef if not played
+#           prev_table => [ c1, c2, c3, c4 ], # Last trick (for client-viewing)
 #           score => [X, Y],
 #           phase => 'lobby', 'play', 'vote', 'end'
 #           trump_nominee => card,
@@ -151,6 +152,7 @@ sub join_game {
             trump => undef,
             tricks => [0, 0, 0, 0],
             table => [undef, undef, undef, undef],
+            prev_table => [undef, undef, undef, undef],
             caller => -1,
             score => [0, 0],
             phase => 'lobby',
@@ -271,7 +273,6 @@ sub start_new_round {
 
     # Shift dealer and deal
     $game->{dealer} = ($game->{dealer} + 1) % 4;
-    $game->{table} = [undef, undef, undef, undef];
     $game->{trump} = undef;
     $game->{tricks} = [0,0,0,0];
     $game->{out_player} = -1;
@@ -423,6 +424,7 @@ sub play_card {
 
         $game->{tricks}->[$winner_id]++;
         $game->{turn} = $winner_id;
+        $game->{prev_table} = $game->{table};
         $game->{table} = [undef, undef, undef, undef];
         $game->{led} = undef;
 

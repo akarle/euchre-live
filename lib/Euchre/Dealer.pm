@@ -363,9 +363,10 @@ sub play_card {
     my $game = $p->{game};
     my $seat = $p->{seat};
 
+    my %colors = (H => 'D', D => 'H', S => 'C', C => 'S');
+
     # Validate they follow suit if they CAN
     if (defined $game->{led}) {
-        my %colors = (H => 'D', D => 'H', S => 'C', C => 'S');
 
         # Build up a list of valid cards
         my @followers = map { "$_$game->{led}" } qw(N T Q K A); # no jack
@@ -404,7 +405,13 @@ sub play_card {
     if ($played_cards == 1) {
         # First card!
         my ($val, $suit) = split('', $msg->{card});
-        $game->{led} = $suit;
+
+        # Special case Jack of Color == trump
+        if ($val eq 'J' && $suit eq $colors{$game->{trump}}) {
+            $game->{led} = $game->{trump};
+        } else {
+            $game->{led} = $suit;
+        }
     }
 
     # Adjust num cards on table by if there's an out player

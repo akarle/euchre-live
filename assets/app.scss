@@ -74,12 +74,18 @@
     align-items: center;
 }
 .partner__info {
+    width: 100%;
     display: flex;
     justify-content: space-evenly;
 }
 .my__stack {
     float: right;
+}
+.my__hinfo {
     font-size: 1.5rem;
+}
+.my__tinfo {
+    font-size: 1.3rem;
 }
 .mh__card {
     width: 100px;
@@ -124,6 +130,32 @@
 // .tb__center {
 //     background-color: rgb(217, 249, 255);
 // }
+.trick__card {
+    width: 80px;
+}
+.trick__holder, .trick__outer, .trick__grid, .trick__row {
+    height: 100%;
+}
+.left__trick, .right__trick {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.mid__trick {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.me {
+    justify-content: flex-end;
+}
+.partner {
+    justify-content: flex-start;
+}
+.both {
+    justify-content: space-between;
+}
 
 .trump__card {
     width: 80px;
@@ -152,6 +184,13 @@
 .trump__holder.right {
     flex-direction: row;
     justify-content: flex-end;
+}
+.tp1__stack {
+    display: flex;
+    flex-direction: column;
+    .bx--btn, .bx--dropdown__wrapper{
+        margin-bottom: 3px;
+    }
 }
 
 .table__header {

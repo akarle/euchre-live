@@ -331,6 +331,11 @@ sub order {
         # Accept the vote...
         $game->{trump} = $msg->{vote};
         $game->{caller} = $p->{seat};
+        if ($msg->{loner}) {
+            my $partner_seat = ($p->{seat} + 2) % 4;
+            $game->{out_player} = $partner_seat;
+            $game->{tricks}->[$partner_seat] = 'X';
+        }
         if ($game->{pass_count} < 4) {
             # Setting phase will block all other play actions until the
             # dealer is done swapping. Do still broadcast so dealer knows!
@@ -344,11 +349,6 @@ sub order {
             reset_turn($game);
         }
 
-        if ($msg->{loner}) {
-            my $partner_seat = ($p->{seat} + 2) % 4;
-            $game->{out_player} = $partner_seat;
-            $game->{tricks}->[$partner_seat] = 'X';
-        }
         sort_hands($game);
         broadcast_gamestate($game);
     } else {

@@ -4,6 +4,7 @@ use warnings;
 
 package Euchre::Dealer;
 
+use Mojo::IOLoop;
 use List::Util qw(sum);
 
 use Euchre::Game;
@@ -34,7 +35,6 @@ our @EXPORT = qw(
 #           led   => suit,
 #           caller => 0-3,
 #           table => [ c1, c2, c3, c4 ], # exactly 4, undef if not played
-#           prev_table => [ c1, c2, c3, c4 ], # Last trick (for client-viewing)
 #           score => [X, Y],
 #           phase => 'lobby', 'play', 'vote', 'end'
 #           trump_nominee => card,
@@ -152,7 +152,6 @@ sub join_game {
             trump => undef,
             tricks => [0, 0, 0, 0],
             table => [undef, undef, undef, undef],
-            prev_table => [undef, undef, undef, undef],
             caller => -1,
             score => [0, 0],
             phase => 'lobby',
@@ -422,11 +421,13 @@ sub play_card {
         my @table = map { defined($_) ? $_ : 'X' } @{$game->{table}};
         my $winner_id = trick_winner($game->{trump}, $game->{led}, @table);
 
+        # Update the gamestate and pause so all can see
         $game->{tricks}->[$winner_id]++;
         $game->{turn} = $winner_id;
-        $game->{prev_table} = $game->{table};
-        $game->{table} = [undef, undef, undef, undef];
-        $game->{led} = undef;
+        $game->{phase} = 'pause';
+
+        # Sub to call after pause
+        my $post_pause = sub {};
 
         my @num_tricks = grep { /^\d+$/ } @{$game->{tricks}};
         if (sum(@num_tricks) >= 5) {
@@ -435,14 +436,23 @@ sub play_card {
             $game->{score}->[$team_id] += $score;
 
             if ($game->{score}->[$team_id] >= 10) {
-                # End game... no need to redeal
-                signal_game_end($game);
+                $post_pause = sub { signal_game_end($game) };
             } else {
-                start_new_round($game);
+                $post_pause = sub { start_new_round($game) };
             }
         }
-    }
 
+
+        Mojo::IOLoop->timer(3 => sub {
+            $game->{table} = [undef, undef, undef, undef];
+            $game->{led} = undef;
+            $game->{phase} = 'play';
+
+            $post_pause->();
+            broadcast_gamestate($game);
+        });
+
+    }
     broadcast_gamestate($game);
 }
 

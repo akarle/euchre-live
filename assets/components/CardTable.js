@@ -102,7 +102,9 @@ export default class CardTable extends React.Component {
     processVote = (msg) => {
         if (this.state.phase == 'lobby') {
             this.gameStartSetup(msg);
-        } else if (this.state.phase == 'pause') {
+        } else if (this.state.phase == 'pause' || 
+                  (this.state.phase == 'vote2' && msg.game.pass_count == 0)) {
+                // second condition is for all players pass trump twice
             this.trumpStartSetup(msg);
         }
         const {leftSeat, rightSeat, partnerSeat, mySeat} = this.state;

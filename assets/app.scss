@@ -16,6 +16,20 @@
     }
 }
 
+.table__main {
+    margin-top: 2rem;
+    min-width: 850px;
+    min-height: 650px;
+}
+
+.score__holder{
+    font-size: 1.2rem;
+    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
 .exit__row {
     display: flex;
     justify-content: flex-end;

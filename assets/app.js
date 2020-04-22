@@ -5,8 +5,9 @@ import Lobby from './components/Lobby';
 import CardTable from './components/CardTable';
 import { w3cwebsocket as W3CWebSocket } from 'websocket';
 
-const client = new W3CWebSocket('ws://localhost:3000/play');
-// additional fakeClient sockets, only used on debug
+// const client = new W3CWebSocket('ws://localhost:3000/play');
+let client = null;
+// additional fakeClient sockets, only used on tableDebug
 let fc1, fc2, fc3 = null;
 
 
@@ -23,11 +24,14 @@ class App extends React.Component {
             tableName: initialTable,
             showTable: tableDebug
         };
+        const host = window.location.host;
+        const clientAddr = 'ws://' + host + '/play';
+        client = new W3CWebSocket(clientAddr);
         if (tableDebug) { 
             // on tableDebug send join plus add 3 fakeClient players that join+sit
-            fc1 = new W3CWebSocket('ws://localhost:3000/play');
-            fc2 = new W3CWebSocket('ws://localhost:3000/play');
-            fc3 = new W3CWebSocket('ws://localhost:3000/play');
+            fc1 = new W3CWebSocket(clientAddr);
+            fc2 = new W3CWebSocket(clientAddr);
+            fc3 = new W3CWebSocket(clientAddr);
             // wait 1 second so sockets establish connection
             setTimeout(()=>{
                 this.setFakeGame(initialName, initialTable);

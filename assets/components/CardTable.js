@@ -45,7 +45,10 @@ export default class CardTable extends React.Component {
             turnSeat: -1,
             dealSeat: -1,
             table: [],
-            handLengths: []
+            handLengths: [],
+            score: [0, 0],
+            trickWinner:'',
+            tricks:[]
         };
     };
 
@@ -74,6 +77,9 @@ export default class CardTable extends React.Component {
                     case 'play':
                         this.processPlay(msg);
                         break;
+                    case 'pause':
+                        this.processPause(msg);
+                        break;
                     default:
                         break;
                 }
@@ -96,7 +102,7 @@ export default class CardTable extends React.Component {
     processVote = (msg) => {
         if (this.state.phase == 'lobby') {
             this.gameStartSetup(msg);
-        } else if (this.state.phase == 'play') {
+        } else if (this.state.phase == 'pause') {
             this.trumpStartSetup(msg);
         }
         const {leftSeat, rightSeat, partnerSeat, mySeat} = this.state;
@@ -155,6 +161,8 @@ export default class CardTable extends React.Component {
             phase: 'play',
             myCards: msg.hand,
             table: msg.game.table,
+            tricks: msg.game.tricks,
+            trickWinner: '',
             handLengths: msg.game.hand_lengths,
             leftTurnInfo: turnInfo[leftSeat],
             rightTurnInfo: turnInfo[rightSeat],
@@ -162,6 +170,30 @@ export default class CardTable extends React.Component {
             myTurnInfo: turnInfo[mySeat]
         });
 
+    }
+
+    processPause = msg => {
+        // console.log('new t:', msg.game.tricks);
+        // console.log('old t:', this.state.tricks);
+        let trickWinIndex = -1;
+        let trickWinner = '';
+        for (let i = 0; i < 4; i++){
+            if (msg.game.tricks[i] != this.state.tricks[i]){
+                trickWinIndex = i;
+                break;
+            }
+        }
+        if (trickWinIndex > -1) {
+            //must be?? sanity check
+            trickWinner = this.state.playerNames[trickWinIndex] + ' takes the trick!'
+        }
+        // console.log('trickWinIndex = ', trickWinIndex);
+        this.setState ({
+            table: msg.game.table,
+            handLengths: msg.game.hand_lengths,
+            phase: 'pause',
+            trickWinner: trickWinner
+        })
     }
 
     handStartSetup = msg => {
@@ -175,8 +207,21 @@ export default class CardTable extends React.Component {
             handInfo[dealSeat] = 'Dealer';
             handInfo[callSeat] = caller;
         }
+        // this.state.score is always [{us}, {them}]
+        let score = [];
+        if (mySeat % 2 == 0){
+            // we're evens
+            score[0] = msg.game.score[0];
+            score[1] = msg.game.score[1];
+        } else {
+            score[0] = msg.game.score[1];
+            score[1] = msg.game.score[0];
+        }
         this.setState({
             trump: msg.game.trump,
+            table: msg.game.table,
+            score: score,
+            handLengths: msg.game.hand_lengths,
             leftHandInfo: handInfo[leftSeat],
             rightHandInfo: handInfo[rightSeat],
             partnerHandInfo: handInfo[partnerSeat],
@@ -348,7 +393,7 @@ export default class CardTable extends React.Component {
         const { playerNames, mySeat, phase, myCards, myHandInfo, myTurnInfo,
             partnerName, partnerHandInfo, partnerTurnInfo, partnerSeat, leftName, leftTurnInfo, leftHandInfo, leftSeat,
             rightName, rightHandInfo, rightTurnInfo, rightSeat, trumpPlace, trumpNom, turnSeat,
-            dealSeat, trump, handLengths } = this.state;
+            dealSeat, trump, handLengths, score, trickWinner } = this.state;
         const {name, tableName} = this.props;
         const showSeatPicker = phase == 'lobby';
         const showTrump = (phase == 'vote') || (phase == 'vote2') || (phase == 'swap');
@@ -359,9 +404,9 @@ export default class CardTable extends React.Component {
         const tcp = "trump__holder " + trumpPlace;
         const trumpImage = phase == 'vote' ? 'cards/' + trumpNom + '.svg' : 'cards/1B.svg';
         const trumpMsg = phase == 'play' ? suit[trump] + ' are trump' : '';
-        const trickDisplay = phase == 'play' ? this.genTrick() : [];
+        const trickDisplay = (phase == 'play' || phase == 'pause') ? this.genTrick() : [];
         return (
-            <div id="table">
+            <div id="table" className="table__main">
                 <Grid>
                     {showSeatPicker && (
                      <Row className="table__header">
@@ -395,6 +440,12 @@ export default class CardTable extends React.Component {
                             </div>)}
                         </Column>
                         <Column className="tt__right" sm={1}>
+                            {!showSeatPicker && (
+                            <div className="score__holder">
+                                <div className="us__score">Us: {score[0]}</div>
+                                <div className="them__score">Them: {score[1]}</div>
+                                <div className="trick__win">{trickWinner}</div>
+                            </div>)}
                         </Column>
                     </Row>
                     <Row className="table__mid">
@@ -424,7 +475,7 @@ export default class CardTable extends React.Component {
                                     </div>
                                 </div>
                             )}
-                            { (phase=='play') && (
+                            { (phase=='play' || phase=='pause') && (
                                 <div className="trick__holder">{trickDisplay}</div>
                             )}
                         </Column>

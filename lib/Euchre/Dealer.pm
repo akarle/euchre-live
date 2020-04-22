@@ -443,7 +443,7 @@ sub play_card {
         }
 
 
-        Mojo::IOLoop->timer(3 => sub {
+        Mojo::IOLoop->timer(2 => sub {
             $game->{table} = [undef, undef, undef, undef];
             $game->{led} = undef;
             $game->{phase} = 'play';

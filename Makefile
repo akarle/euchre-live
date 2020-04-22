@@ -9,3 +9,8 @@ tags:
 test:
 	perl -c gloat.pl
 	perl t/Game.t
+
+.PHONY: release
+release:
+	./build.sh
+	scp -r build/* www@euchre.live:/var/www/euchre-live

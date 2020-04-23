@@ -22,6 +22,11 @@ get '/debug' => sub {
     $c->reply->static('debug.html');
 };
 
+get '/stats' => sub {
+    my $c = shift;
+    $c->render(text => stats);
+};
+
 websocket '/play' => sub {
     my $c = shift;
 

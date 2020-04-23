@@ -15,6 +15,7 @@ our @EXPORT = qw(
     handle_msg
     register_player
     gloaters_never_win
+    stats
 );
 
 # XXX: The first draft of this was written quickly and chose
@@ -593,6 +594,19 @@ sub swap_player {
         }
     }
     return 0;
+}
+
+# Global server stats for games in progress
+# Poor man's monitoring :)
+sub stats {
+    my $num_players = scalar keys %PLAYERS;
+    my $num_games = scalar keys %GAMES;
+    
+    return <<"EOM"
+$num_players\tPlayers
+$num_games\tGames
+EOM
+
 }
 
 1;

@@ -57,6 +57,7 @@ our @EXPORT = qw(
 #           seat => 0-3,
 #           ws   => websocket obj,
 #           hand => cards in hand,
+#           active => is connection active,
 #       }
 #
 #   The players keyed on ws id is key (pun) because the closure in
@@ -73,7 +74,7 @@ our %PLAYERS;
 sub register_player {
     my ($tx) = @_;
     my $id = ''.$tx;
-    $PLAYERS{$id} = { id => $id, ws => $tx };
+    $PLAYERS{$id} = { id => $id, ws => $tx, active => 1 };
     print "Player $id has joined the server\n";
 }
 
@@ -82,8 +83,27 @@ sub gloaters_never_win {
     my ($id) = @_;
     if (!exists $PLAYERS{$id}) {
         warn "gloaters_never_win called on unknown player\n";
+        return;
     }
-    # TODO: handle the game cleanup...? should we quit game? pause?
+    $PLAYERS{$id}->{active} = 0;
+    my $game = $PLAYERS{$id}->{game};
+    if (defined $game) {
+        # Player was in a game... if no one else is still there,
+        # we should clean up the game after some inactivity
+        my $timeout = $ENV{DEBUG} ? 1 : (60 * 60 * 30); # 30 mins
+        Mojo::IOLoop->timer($timeout => sub {
+            if (!grep { defined($_) && $_->{active} } @{$game->{players}}) {
+                print "Deleting inactive Game $game->{id}\n";
+                delete $GAMES{$game->{id}};
+            }
+        });
+    }
+
+    print "Player $PLAYERS{$id}->{name} went inactive\n";
+
+    # Remove reference in %PLAYERS, but NOTE: still referenced in $game
+    # potentially. This is by design. Don't throw away their hand / seat
+    # whatever until no active players are at the game and a timeout passes
     delete $PLAYERS{$id};
 }
 
@@ -584,6 +604,7 @@ sub swap_player {
             my $old_id = $game->{$list}->[$i]->{id};
             $game->{$list}->[$i]->{id} = $new_p->{id};
             $game->{$list}->[$i]->{ws} = $new_p->{ws};
+            $game->{$list}->[$i]->{active} = 1; # May have disconnected previously
             $PLAYERS{$new_p->{id}} = $game->{$list}->[$i];
 
             # NOTE: For now, don't delete from %PLAYERS here...

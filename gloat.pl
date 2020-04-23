@@ -42,7 +42,6 @@ websocket '/play' => sub {
     });
 
     $c->on(finish => sub {
-        app->log->debug("Player $id exiting");
         gloaters_never_win($id);
     });
 };

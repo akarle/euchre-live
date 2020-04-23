@@ -24,7 +24,7 @@ get '/debug' => sub {
 
 get '/stats' => sub {
     my $c = shift;
-    $c->render(text => stats);
+    $c->render(text => stats, format => 'txt');
 };
 
 websocket '/play' => sub {

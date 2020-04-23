@@ -74,7 +74,7 @@ our %PLAYERS;
 sub register_player {
     my ($tx) = @_;
     my $id = ''.$tx;
-    $PLAYERS{$id} = { id => $id, ws => $tx, active => 1 };
+    $PLAYERS{$id} = { id => $id, ws => $tx, active => 1, joined => time };
     print "Player $id has joined the server\n";
 }
 
@@ -85,8 +85,10 @@ sub gloaters_never_win {
         warn "gloaters_never_win called on unknown player\n";
         return;
     }
-    $PLAYERS{$id}->{active} = 0;
-    my $game = $PLAYERS{$id}->{game};
+    my $p = $PLAYERS{$id};
+    my $game = $p->{game};
+
+    $p->{active} = 0;
     if (defined $game) {
         # Player was in a game... if no one else is still there,
         # we should clean up the game after some inactivity
@@ -99,7 +101,8 @@ sub gloaters_never_win {
         });
     }
 
-    print "Player $PLAYERS{$id}->{name} went inactive\n";
+    my $name = $p->{name} ? $p->{name} : 'UnnamedPlayer';
+    print "Player $name went inactive\n";
 
     # Remove reference in %PLAYERS, but NOTE: still referenced in $game
     # potentially. This is by design. Don't throw away their hand / seat
@@ -176,6 +179,7 @@ sub join_game {
             caller => -1,
             score => [0, 0],
             phase => 'lobby',
+            start_time => time,
         };
     }
 
@@ -623,11 +627,26 @@ sub stats {
     my $num_players = scalar keys %PLAYERS;
     my $num_games = scalar keys %GAMES;
     
-    return <<"EOM"
-$num_players\tPlayers
-$num_games\tGames
-EOM
+    my $msg = "";
+    $msg .= "PLAYERS: Join Time\t\tName\tGame\n";
+    $msg .= "===========================================================\n";
+    for my $p (values %PLAYERS) {
+        my $name = $p->{name} ? $p->{name} : 'UnnamedPlayer';
+        my $game = $p->{game} ? $p->{game}->{id} : 'Lobby';
+        $msg .= localtime($p->{joined}) . "\t$name\t$game\n";
+    }
+    $msg .= "-----------------------------------------------------------\n";
+    $msg .= "$num_players\tPlayers\n";
 
+    $msg .= "\n\nGAMES: Start Time\t\tname\n";
+    $msg .= "===========================================================\n";
+    for my $g (values %GAMES) {
+        $msg .= localtime($g->{start_time}) . "\t$g->{id}\n";
+    }
+    $msg .= "-----------------------------------------------------------\n";
+    $msg .= "$num_games\tGames\n";
+
+    return $msg;
 }
 
 1;

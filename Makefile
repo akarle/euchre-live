@@ -11,6 +11,6 @@ test:
 	perl t/Game.t
 
 .PHONY: release
-release:
+release: test
 	./build.sh
 	scp -r build/* www@euchre.live:/var/www/euchre-live

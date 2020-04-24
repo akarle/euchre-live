@@ -68,6 +68,11 @@ our @EXPORT = qw(
 our %GAMES;
 our %PLAYERS;
 
+# Stats
+our $TOTAL_PLAYERS = 0;
+our $TOTAL_GAMES = 0;
+our $START_TIME = localtime(time);
+
 # On ws connection, we add the player to %PLAYERS so that all
 # future handle_msg's know how to send messages back to the
 # player. No name or game_id known (yet). Player in lobby
@@ -76,6 +81,8 @@ sub register_player {
     my $id = ''.$tx;
     $PLAYERS{$id} = { id => $id, ws => $tx, active => 1, joined => time };
     print "Player $id has joined the server\n";
+
+    $TOTAL_PLAYERS++;
 }
 
 # finish handler to cleanup state
@@ -181,6 +188,7 @@ sub join_game {
             phase => 'lobby',
             start_time => time,
         };
+        $TOTAL_GAMES++;
     }
 
     my $game = $GAMES{$id};
@@ -645,6 +653,14 @@ sub stats {
     }
     $msg .= "-----------------------------------------------------------\n";
     $msg .= "$num_games\tGames\n";
+
+    $msg .= "\n\nServer Stats\n";
+    $msg .= "===========================================================\n";
+    $msg .= "Server Start:     $START_TIME\n";
+    $msg .= "Lifetime Games:   $TOTAL_GAMES\n";
+    $msg .= "Lifetime Players: $TOTAL_PLAYERS\n";
+    $msg .= "-----------------------------------------------------------\n";
+    $msg .= "\n\nUptime: " . `uptime`;
 
     return $msg;
 }

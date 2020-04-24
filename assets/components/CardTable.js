@@ -177,6 +177,7 @@ export default class CardTable extends React.Component {
     processPause = msg => {
         // console.log('new t:', msg.game.tricks);
         // console.log('old t:', this.state.tricks);
+        // console.log('start processPause, msg.hand=', msg.hand);
         let trickWinIndex = -1;
         let trickWinner = '';
         for (let i = 0; i < 4; i++){
@@ -193,6 +194,8 @@ export default class CardTable extends React.Component {
         this.setState ({
             table: msg.game.table,
             handLengths: msg.game.hand_lengths,
+            myCards: msg.hand,
+            tricks: msg.game.tricks,
             phase: 'pause',
             trickWinner: trickWinner
         })
@@ -210,15 +213,7 @@ export default class CardTable extends React.Component {
             handInfo[callSeat] = caller;
         }
         // this.state.score is always [{us}, {them}]
-        let score = [];
-        if (mySeat % 2 == 0){
-            // we're evens
-            score[0] = msg.game.score[0];
-            score[1] = msg.game.score[1];
-        } else {
-            score[0] = msg.game.score[1];
-            score[1] = msg.game.score[0];
-        }
+        let score = this.arrangeScore(msg.game.score);
         this.setState({
             trump: msg.game.trump,
             table: msg.game.table,
@@ -232,6 +227,21 @@ export default class CardTable extends React.Component {
 
     }
 
+    arrangeScore = (msgScore) => {
+        // this.state.score is always [{us}, {them}]
+        const { mySeat } = this.state;
+        let score = [];
+        if (mySeat % 2 == 0){
+            // we're evens
+            score[0] = msgScore[0];
+            score[1] = msgScore[1];
+        } else {
+            score[0] = msgScore[1];
+            score[1] = msgScore[0];
+        }
+        return score;
+    }
+
     trumpStartSetup = (msg) => {
         const {leftSeat, rightSeat, partnerSeat, mySeat, dealSeat} = this.state;
         let handInfo = ['', '', '', ''];
@@ -240,10 +250,14 @@ export default class CardTable extends React.Component {
         let tpIndex = msg.game.dealer - mySeat;
         tpIndex = (tpIndex < 0) ? tpIndex + 4 : tpIndex;
         const trumpPlace = trumpPlacement[tpIndex];
+        // this.state.score is always [{us}, {them}]
+        let score = this.arrangeScore(msg.game.score);
         this.setState({
             trump: '',
             trumpPlace: trumpPlace,
             dealSeat: newDeal,
+            score: score,
+            trickWinner: '',
             trumpNom: msg.game.trump_nominee,
             leftHandInfo: handInfo[leftSeat],
             rightHandInfo: handInfo[rightSeat],
@@ -404,7 +418,7 @@ export default class CardTable extends React.Component {
         const showInfo = !showSeatPicker && !showTrumpPicker && !showSwap;
         const welcomeMsg = 'Welcome to the ' + tableName + ' table, ' + name + '!';
         const tcp = "trump__holder " + trumpPlace;
-        const trumpImage = phase == 'vote' ? 'cards/' + trumpNom + '.svg' : 'cards/1B.svg';
+        const trumpImage = (phase != 'vote2') ? 'cards/' + trumpNom + '.svg' : 'cards/1B.svg';
         const trumpMsg = phase == 'play' ? suit[trump] + ' are trump' : '';
         const trickDisplay = (phase == 'play' || phase == 'pause') ? this.genTrick() : [];
         return (

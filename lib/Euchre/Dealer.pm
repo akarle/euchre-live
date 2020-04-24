@@ -92,7 +92,7 @@ sub gloaters_never_win {
     if (defined $game) {
         # Player was in a game... if no one else is still there,
         # we should clean up the game after some inactivity
-        my $timeout = $ENV{DEBUG} ? 1 : (60 * 60 * 30); # 30 mins
+        my $timeout = $ENV{DEBUG} ? 1 : (60 * 30); # 30 mins
         Mojo::IOLoop->timer($timeout => sub {
             if (!grep { defined($_) && $_->{active} } @{$game->{players}}) {
                 print "Deleting inactive Game $game->{id}\n";

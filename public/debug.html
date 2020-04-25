@@ -12,7 +12,8 @@
 <body>
   <div id="content"></div>
   <script>
-    var ws = new WebSocket('ws://localhost:3000/play');
+    var host = window.location.host
+    var ws = new WebSocket('ws://' + host + '/play');
     var GAME_PHASE = ''
     ws.onmessage = function (event) { 
       msg = JSON.parse(event.data);

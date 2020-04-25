@@ -48,13 +48,18 @@ export default class CardTable extends React.Component {
             handLengths: [],
             score: [0, 0],
             trickWinner:'',
-            tricks:[]
+            tricks:[],
+            bannerMsg: ''
         };
     };
 
     componentDidMount () {
-        const websoc = this.props.client;
-        websoc.onmessage = (event) => this.processResponse(event);
+        const {name, tableName, client} = this.props;
+        client.onmessage = (event) => this.processResponse(event);
+        const welcomeMsg = 'Welcome to the ' + tableName + ' table, ' + name + '!';
+        this.setState({
+            bannerMsg: welcomeMsg
+        });
     };
 
     processResponse = (event) => {
@@ -79,6 +84,9 @@ export default class CardTable extends React.Component {
                         break;
                     case 'pause':
                         this.processPause(msg);
+                        break;
+                    case 'end':
+                        this.processEnd(msg);
                         break;
                     default:
                         break;
@@ -199,6 +207,20 @@ export default class CardTable extends React.Component {
             phase: 'pause',
             trickWinner: trickWinner
         })
+    }
+
+    processEnd = msg => {
+        const {playerNames, mySeat, leftSeat, partnerSeat, rightSeat} = this.state;
+        // arrangeScore[0] us, [1] them
+        const finalScore = this.arrangeScore(msg.game.score);
+        const winMsg = finalScore[0] > finalScore[1] ?
+            'You and ' + playerNames[partnerSeat] + ' win the game!!' :
+            playerNames[leftSeat] + ' and ' + playerNames[rightSeat] + ' win this one...';
+        this.setState({
+            phase: 'end',
+            score: finalScore,
+            bannerMsg: winMsg
+        });
     }
 
     handStartSetup = msg => {
@@ -409,14 +431,12 @@ export default class CardTable extends React.Component {
         const { playerNames, mySeat, phase, myCards, myHandInfo, myTurnInfo,
             partnerName, partnerHandInfo, partnerTurnInfo, partnerSeat, leftName, leftTurnInfo, leftHandInfo, leftSeat,
             rightName, rightHandInfo, rightTurnInfo, rightSeat, trumpPlace, trumpNom, turnSeat,
-            dealSeat, trump, handLengths, score, trickWinner } = this.state;
-        const {name, tableName} = this.props;
-        const showSeatPicker = phase == 'lobby';
+            dealSeat, trump, handLengths, score, trickWinner, bannerMsg } = this.state;
+        const showSeatPicker = phase == 'lobby' || phase == 'end';
         const showTrump = (phase == 'vote') || (phase == 'vote2') || (phase == 'swap');
         const showTrumpPicker = showTrump && (turnSeat == mySeat);
         const showSwap = (phase == 'swap') && (dealSeat == mySeat);
         const showInfo = !showSeatPicker && !showTrumpPicker && !showSwap;
-        const welcomeMsg = 'Welcome to the ' + tableName + ' table, ' + name + '!';
         const tcp = "trump__holder " + trumpPlace;
         const trumpImage = (phase != 'vote2') ? 'cards/' + trumpNom + '.svg' : 'cards/1B.svg';
         const trumpMsg = phase == 'play' ? suit[trump] + ' are trump' : '';
@@ -427,7 +447,7 @@ export default class CardTable extends React.Component {
                     {showSeatPicker && (
                      <Row className="table__header">
                         <Column className="hd__left" sm={3}>
-                            <h3>{welcomeMsg}</h3>
+                            <h3>{bannerMsg}</h3>
                         </Column>
                         <Column className="hd__right" sm={1}>
                             <div className="exit__row">
@@ -456,7 +476,7 @@ export default class CardTable extends React.Component {
                             </div>)}
                         </Column>
                         <Column className="tt__right" sm={1}>
-                            {!showSeatPicker && (
+                            {(phase != 'lobby') && (
                             <div className="score__holder">
                                 <div className="us__score">Us: {score[0]}</div>
                                 <div className="them__score">Them: {score[1]}</div>

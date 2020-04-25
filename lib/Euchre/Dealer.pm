@@ -172,6 +172,9 @@ sub join_game {
 
     my $id = $msg->{game_id};
 
+    # ckDebug: if env END_DEBUG make score 9-9
+    # as in line ~102 above: my $timeout = $ENV{DEBUG} ? 1 : (60 * 30); # 30 mins
+
     # init game if needed
     if (!exists $GAMES{$id}) {
         $GAMES{$id} = {
@@ -184,7 +187,7 @@ sub join_game {
             tricks => [0, 0, 0, 0],
             table => [undef, undef, undef, undef],
             caller => -1,
-            score => [0, 0],
+            score => $ENV{END_DEBUG} ? [9,9] :[0, 0],
             phase => 'lobby',
             start_time => time,
         };

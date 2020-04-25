@@ -14,3 +14,4 @@ test:
 release: test
 	./build.sh
 	scp -r build/* www@euchre.live:/var/www/euchre-live
+	ssh www@euchre.live sh /var/www/deploy.sh

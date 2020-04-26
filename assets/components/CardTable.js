@@ -54,13 +54,23 @@ export default class CardTable extends React.Component {
     };
 
     componentDidMount () {
-        const {name, tableName, client} = this.props;
+        const {name, tableName, client, firstMsg} = this.props;
         client.onmessage = (event) => this.processResponse(event);
         const welcomeMsg = 'Welcome to the ' + tableName + ' table, ' + name + '!';
+        if (firstMsg) {
+            this.processFirstMessage(firstMsg);
+        }
         this.setState({
             bannerMsg: welcomeMsg
         });
     };
+
+    componentDidUpdate (prevProps) {
+        const {firstMsg} = this.props;
+        if (firstMsg && !prevProps.firstMsg) {
+            this.processFirstMessage(firstMsg);
+        }
+    }
 
     processResponse = (event) => {
         let msg = JSON.parse(event.data);
@@ -95,17 +105,62 @@ export default class CardTable extends React.Component {
         };
     };
 
+    processFirstMessage = msg => {
+        // console.log('processFirstMessage');
+        // in cases of forceRejoin, the firstMsg could be lobby, vote, play
+        // for cases of ordinary game join, will be lobby
+        if (msg && msg.game) {
+            switch (msg.game.phase) {
+                case 'lobby':
+                    this.processLobby(msg);
+                    break;
+                case 'vote':
+                    this.processFirstMsgVote(msg);
+                    break;
+                case 'play':
+                    this.processFirstMsgPlay(msg);
+                    break;
+            }
+        }
+    }
+
+    processFirstMsgPlay = msg => {
+        this.initMySeat(msg);
+        setTimeout(this.gameStartSetup, 300, msg);
+        setTimeout(this.handStartSetup, 600, msg);
+        setTimeout(this.processPlay, 900, msg);
+        // this.gameStartSetup(msg);
+        // this.handStartSetup(msg);
+        // this.processPlay(msg);
+    }
+
+    processFirstMsgVote = msg => {
+        this.initMySeat(msg);
+        setTimeout(this.gameStartSetup, 300, msg);
+        setTimeout(this.processVote, 600, msg);
+        // this.gameStartSetup(msg);
+        // this.processVote(msg);
+    }
+
+    // OK to let processLobby run twice on first lobby msg, which
+    //  may happen if CardTable already mounted on join_table
     processLobby = (msg) => {
+        this.initMySeat(msg);
+        this.setState({
+            phase: 'lobby'
+        });
+    };
+
+    initMySeat = msg => {
         if (msg.game.players) {
             const plAr = msg.game.players;
             const mySeat = plAr.findIndex( x => x == this.props.name );
             this.setState({
                 playerNames: plAr,
                 mySeat: mySeat,
-                phase: 'lobby'
-            })
+            });
         };
-    };
+    }
 
     processVote = (msg) => {
         if (this.state.phase == 'lobby') {
@@ -183,9 +238,6 @@ export default class CardTable extends React.Component {
     }
 
     processPause = msg => {
-        // console.log('new t:', msg.game.tricks);
-        // console.log('old t:', this.state.tricks);
-        // console.log('start processPause, msg.hand=', msg.hand);
         let trickWinIndex = -1;
         let trickWinner = '';
         for (let i = 0; i < 4; i++){
@@ -198,7 +250,6 @@ export default class CardTable extends React.Component {
             //must be?? sanity check
             trickWinner = this.state.playerNames[trickWinIndex] + ' takes the trick!'
         }
-        // console.log('trickWinIndex = ', trickWinIndex);
         this.setState ({
             table: msg.game.table,
             handLengths: msg.game.hand_lengths,
@@ -301,7 +352,6 @@ export default class CardTable extends React.Component {
         let tpIndex = msg.game.dealer - mySeat;
         tpIndex = (tpIndex < 0) ? tpIndex + 4 : tpIndex;
         const trumpPlace = trumpPlacement[tpIndex];
-        console.log('trumpPlace:', trumpPlace);
         this.setState ({
             leftName: playerNames[leftSeat],
             leftSeat: leftSeat,
@@ -342,18 +392,18 @@ export default class CardTable extends React.Component {
         this.props.client.send(JSON.stringify({
             action: 'start_game', start_seat: startDealer
         }));
-        console.log('start game, dealer = ', startDealer);
+        // console.log('start game, dealer = ', startDealer);
     };
 
     sendVote = (voteObject) => {
         const voteString = JSON.stringify(voteObject);
-        console.log('sendVote:', voteString);
+        // console.log('sendVote:', voteString);
         this.props.client.send(voteString);
     };
 
     sendCard = (index) => {
         const {phase, myCards} = this.state;
-        console.log('card click ', myCards[index]);
+        // console.log('card click ', myCards[index]);
         if (phase == 'swap') {
             this.props.client.send(JSON.stringify({
                 action:'dealer_swap', card: myCards[index]
@@ -569,6 +619,6 @@ CardTable.propTypes = {
     chooseTable: PropTypes.func,
     name: PropTypes.string,
     tableName: PropTypes.string,
-    active: PropTypes.bool,
+    firstMsg: PropTypes.object,
     client: PropTypes.object
 }

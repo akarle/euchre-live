@@ -52,7 +52,7 @@ export default class Lobby extends React.Component {
     }
 
     render () {
-        const {name} = this.props;
+        const {name, uniqueError} = this.props;
         const {nameIn, nameError, tableIn, tableError} = this.state;
         return (
             <div id="lobby" className="lobby__outer">
@@ -110,6 +110,19 @@ export default class Lobby extends React.Component {
                     </div>
                 </div>
                 )}
+                {uniqueError && (
+                <div>
+                    <h3>Hmm, a player named {name} is at the table...</h3>
+                    <p>You need a unique player name, which you can change in the top input above.</p>
+                    <p><emphasis>OR </emphasis> if you lost your connection and want to re-join the
+                    game as player &quot;{name}&quot; from this page, press the REJOIN button below</p>
+                    <Button
+                        className="rejoin__button"
+                        kind="primary"
+                        onClick={()=>this.props.forceJoin()}
+                        >REJOIN</Button> 
+                </div>
+                )}
             </div>
         );
     };
@@ -118,5 +131,7 @@ export default class Lobby extends React.Component {
 Lobby.propTypes = {
     setName: PropTypes.func,
     chooseTable: PropTypes.func,
-    name: PropTypes.string
+    name: PropTypes.string,
+    uniqueError: PropTypes.bool,
+    forceJoin: PropTypes.func
 }

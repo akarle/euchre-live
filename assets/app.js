@@ -22,11 +22,14 @@ class App extends React.Component {
         this.state = {
             playerName: initialName,
             tableName: initialTable,
-            showTable: tableDebug
+            showTable: false,
+            uniqueError: false,
+            firstMsg: null
         };
         const host = window.location.host;
         const clientAddr = 'ws://' + host + '/play';
         client = new W3CWebSocket(clientAddr);
+        client.onmessage = (event) => this.processResponse(event);
         if (tableDebug) { 
             // on tableDebug send join plus add 3 fakeClient players that join+sit
             fc1 = new W3CWebSocket(clientAddr);
@@ -46,18 +49,75 @@ class App extends React.Component {
         );
     }
 
+    // need to only showTable if no user-not-unique
+    // only process incoming if we're waiting to join table
+    // on joinTable success get first 'lobby' phase, put msg on
+    //  CardTable.firstMsg prop for table init
+    processResponse = event => {
+        const {showTable} = this.state;
+        if (!showTable){
+            let msg = JSON.parse(event.data);
+            if (msg) {
+                if ('pong' != msg.msg_type){
+                    // console.log('App procResp');
+                    if (msg.msg_type == 'game_state'){
+                        //replace w switch if more than one needed
+                        // if (msg.game && msg.game.phase == 'lobby'){
+                            //set firstMsg, then set showTable
+                            // console.log('App.procResp: set firstMsg & showTable');
+                            this.setState({
+                                firstMsg: msg
+                            }, () => {
+                                this.setState({
+                                    showTable: true
+                                })
+                            });
+                        // };
+                    } else if (msg.msg_type == 'error'){
+                        if (msg.msg && msg.msg.includes('Username not unique')){
+                            // show confirm-force
+                            // console.log('NOT UNIQUE!!');
+                            this.setState({
+                                uniqueError: true
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     chooseTable = tableName => {
-        const show = tableName && tableName != '';
+        if (!tableName || tableName == ''){
+            client.onmessage = (event) => this.processResponse(event);
+            this.setState({
+                firstMsg: null
+            });
+        };
         this.setState( {
                 tableName: tableName,
-                showTable: show
+                showTable: false
         }, () => {
-            client.send(JSON.stringify({
-                action:'join_game',
-                player_name: this.state.playerName,
-                game_id: tableName
-            }));
+            if (tableName && tableName != ''){
+                client.send(JSON.stringify({
+                    action:'join_game',
+                    player_name: this.state.playerName,
+                    game_id: tableName
+                }));    
+            }
         });
+    }
+
+    forceJoin = () => {
+        // console.log('send force rejoin');
+        // should only be calling this on unique error and user wants force rejoin
+        //  so all other state should be correct
+        client.send(JSON.stringify({
+            action:'join_game',
+            player_name: this.state.playerName,
+            game_id: this.state.tableName,
+            force: true
+        }));    
     }
 
     setFakeGame = (initialName, initialTable) => {
@@ -71,7 +131,7 @@ class App extends React.Component {
     }
 
     render () {
-        const {showTable, playerName, tableName} = this.state;
+        const {showTable, playerName, tableName, firstMsg, uniqueError} = this.state;
         return (
             <div id="top-app">
                 {!showTable && (
@@ -79,6 +139,8 @@ class App extends React.Component {
                         setName={this.setPlayerName}
                         chooseTable={this.chooseTable}
                         name={playerName}
+                        uniqueError={uniqueError}
+                        forceJoin={this.forceJoin}
                     />
                 )}
                 {showTable && (
@@ -86,7 +148,7 @@ class App extends React.Component {
                         chooseTable={this.chooseTable}
                         name={playerName}
                         tableName={tableName}
-                        active={showTable}
+                        firstMsg={firstMsg}
                         client={client}
                     />
                 )}

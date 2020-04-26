@@ -136,6 +136,7 @@ sub handle_msg {
         take_seat   => [\&take_seat, 'lobby', "Can't change seats during game"],
         stand_up    => [\&stand_up, 'lobby', "Can't change seats during game"],
         start_game  => [\&start_game, 'lobby', "Game already started"],
+        restart_game  => [\&restart_game, 'end', "Game hasn't ended"],
 
         # Gameplay
         order       => [\&order, 'vote', "Not time for a vote", 1],
@@ -294,9 +295,16 @@ sub start_game {
         return;
     }
 
-    # TODO: kick spectators out?
-    # TODO: deal!
     start_new_round($game);
+}
+
+sub restart_game {
+    my ($p) = @_;
+    my $game = $p->{game};
+
+    $game->{score} = $ENV{END_DEBUG} ? [9,9] : [0,0];
+    $game->{phase} = 'lobby';
+    broadcast_gamestate($game);
 }
 
 sub num_players {

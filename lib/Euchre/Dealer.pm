@@ -141,6 +141,7 @@ sub handle_msg {
         order       => [\&order, 'vote', "Not time for a vote", 1],
         dealer_swap => [\&dealer_swap, 'dealer_swap', "Can't swap with the Kitty now", 1],
         play_card   => [\&play_card, 'play', "Can't play cards yet", 1],
+        chat        => [\&chat],
     );
 
 
@@ -666,6 +667,22 @@ sub stats {
     $msg .= "\n\nUptime: " . `uptime`;
 
     return $msg;
+}
+
+# Simple stateless broadcast to all clients in game
+sub chat {
+    my ($p, $msg) = @_;
+
+    my $game = $p->{game};
+    for my $player (@{$game->{players}}, @{$game->{spectators}}) {
+        next unless defined $player;
+
+        my $json = {
+            msg_type => 'chat',
+            msg => "$p->{name}: $msg->{msg}"
+        };
+        $player->{ws}->send({ json => $json });
+    }
 }
 
 1;

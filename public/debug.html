@@ -57,6 +57,8 @@
         document.getElementById('game').innerHTML = gameState
       } else if (msg.msg_type === 'error') {
         document.getElementById('error').innerHTML += msg.msg + '<br>'
+      } else if (msg.msg_type === 'chat') {
+        document.getElementById('chat_box').innerHTML += msg.msg + '<br>'
       //} else if (msg.msg_type === 'pong') {
       //  console.log('pong!');
       }
@@ -93,6 +95,10 @@
       } else {
         ws.send(JSON.stringify({action:'play_card', card: card}))
       }
+    }
+    function chat() {
+      ws.send(JSON.stringify({action:'chat', msg: document.getElementById('chat').value }))
+      document.getElementById('chat').value = '';
     }
 
     window.setInterval(() => { ws.send(JSON.stringify({action:'ping'})) }, 5000);
@@ -134,5 +140,10 @@
  <button onclick="pass()">Pass</button>
  <br><br>
  <div id="error" style="color:red"> </div>
+ <br><br>
+ <label for="chat">Chat:</label>
+ <input type="text" id="chat">
+ <button onclick="chat()">Send</button>
+ <div id="chat_box"></div>
 </body>
 </html>

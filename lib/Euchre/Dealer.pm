@@ -18,6 +18,49 @@ our @EXPORT = qw(
     stats
 );
 
+# NOTE: Append ONLY for client compatibility
+use constant {
+    CHANGE_SEAT     => 0,
+    STAND_UP        => 1,
+    START_GAME      => 2,
+    RESTART_GAME    => 3,
+    ORDER           => 4,
+    DEALER_SWAP     => 5,
+    PLAY_CARD       => 6,
+    TURN            => 7,
+    UNIQUE_USER     => 8,
+    INVALID_SEAT    => 9,
+    TAKEN_SEAT      => 10,
+    ALREADY_STANDING => 11,
+    PARTIAL_GAME    => 12,
+    VOTE_ON_KITTY   => 13,
+    VOTE_OFF_KITTY  => 14,
+    BAD_VOTE        => 14,
+    FOLLOW_SUIT     => 16,
+    DONT_HAVE_CARD  => 17,
+};
+
+our @ERRORS = ();
+$ERRORS[CHANGE_SEAT]     = "Can't change seats during game";
+$ERRORS[STAND_UP]        = "Can't change seats during game";
+$ERRORS[START_GAME]      = "Game already started";
+$ERRORS[RESTART_GAME]    = "Game hasn't ended";
+$ERRORS[ORDER]           = "Not time for a vote";
+$ERRORS[DEALER_SWAP]     = "Can't swap with Kitty now";
+$ERRORS[PLAY_CARD]       = "Can't play cards yet";
+$ERRORS[TURN]            = "Not your turn";
+$ERRORS[UNIQUE_USER]     = "Username not unique; is this you?";
+$ERRORS[INVALID_SEAT]    = "Invalid seat";
+$ERRORS[TAKEN_SEAT]      = "Seat is taken";
+$ERRORS[ALREADY_STANDING] = "Already standing!";
+$ERRORS[PARTIAL_GAME]    = "Can't start with empty seats";
+$ERRORS[VOTE_ON_KITTY]   = "Must vote on kitty's suit";
+$ERRORS[VOTE_OFF_KITTY]  = "Can't vote for kitty card suit after turned down";
+$ERRORS[BAD_VOTE]        = "Bad vote";
+$ERRORS[FOLLOW_SUIT]     = "Have to follow suit!";
+$ERRORS[DONT_HAVE_CARD]  = "You don't have that card!";
+
+
 # XXX: The first draft of this was written quickly and chose
 # to use global hashes over objects. I think globals are eventually
 # necessary, becuase the server needs it all in memory. It's just
@@ -133,15 +176,15 @@ sub handle_msg {
         # Game management endpoints
         ping        => [\&pong],
         join_game   => [\&join_game],
-        take_seat   => [\&take_seat, 'lobby', "Can't change seats during game"],
-        stand_up    => [\&stand_up, 'lobby', "Can't change seats during game"],
-        start_game  => [\&start_game, 'lobby', "Game already started"],
-        restart_game  => [\&restart_game, 'end', "Game hasn't ended"],
+        take_seat   => [\&take_seat, 'lobby', CHANGE_SEAT],
+        stand_up    => [\&stand_up, 'lobby', STAND_UP],
+        start_game  => [\&start_game, 'lobby', START_GAME],
+        restart_game  => [\&restart_game, 'end', RESTART_GAME],
 
         # Gameplay
-        order       => [\&order, 'vote', "Not time for a vote", 1],
-        dealer_swap => [\&dealer_swap, 'dealer_swap', "Can't swap with the Kitty now", 1],
-        play_card   => [\&play_card, 'play', "Can't play cards yet", 1],
+        order       => [\&order, 'vote', ORDER, 1],
+        dealer_swap => [\&dealer_swap, 'dealer_swap', DEALER_SWAP, 1],
+        play_card   => [\&play_card, 'play', PLAY_CARD, 1],
         chat        => [\&chat],
     );
 
@@ -155,7 +198,7 @@ sub handle_msg {
     if ($req_phase && ($p->{game}->{phase} ne $req_phase)) {
         send_error($p, $phase_err);
     } elsif ($turn_based && ($p->{seat} != $p->{game}->{turn})) {
-        send_error($p, "Not your turn!");
+        send_error($p, PLAY_CARD);
     } else {
         $handler->($p, $msg);
     }
@@ -207,7 +250,7 @@ sub join_game {
 
     if ($player_exists) {
         if (!$msg->{force}) {
-            send_error($p, 'Username not unique; is this you?');
+            send_error($p, UNIQUE_USER);
             return;
         }
         $p->{name} = $msg->{player_name};
@@ -232,12 +275,12 @@ sub take_seat {
     my $seat = $msg->{seat};
 
     if ($seat > 3 || $seat < 0) {
-        send_error($p, 'Invalid seat');
+        send_error($p, INVALID_SEAT);
         return;
     }
 
     if (defined $game->{players}->[$seat]) {
-        send_error($p, 'Seat is taken');
+        send_error($p, TAKEN_SEAT);
         return;
     } else {
         # Move from standing (or sitting) to sitting
@@ -260,7 +303,7 @@ sub stand_up {
     my $seat = $p->{seat};
 
     if (!defined $seat) {
-        send_error($p, 'Already standing!');
+        send_error($p, ALREADY_STANDING);
     } else {
         # Move from sitting to standing
         push @{$game->{spectators}}, $p;
@@ -277,7 +320,7 @@ sub start_game {
     my $game = $p->{game};
 
     if (num_players($game->{id}) < 4) {
-        send_error($p, "Can't start with empty seats!");
+        send_error($p, PARTIAL_GAME);
         return;
     }
 
@@ -287,7 +330,7 @@ sub start_game {
         # One less since start_new_round will rotate
         $game->{dealer} = ($msg->{start_seat} - 1);
     } else {
-        send_error($p, "Bad seat number");
+        send_error($p, INVALID_SEAT);
         return;
     }
 
@@ -358,12 +401,12 @@ sub order {
         # Validate its an OK vote
         if ($game->{pass_count} < 4) {
             if ($game->{trump_nominee} !~ /$msg->{vote}/) {
-                send_error($p, "Must vote on kitty card's suit");
+                send_error($p, VOTE_ON_KITTY);
                 return;
             }
         } else {
             if ($game->{trump_nominee} =~ /$msg->{vote}/) {
-                send_error($p, "Can't vote for kitty card suit after turned down");
+                send_error($p, VOTE_OFF_KITTY);
                 return;
             }
         }
@@ -392,7 +435,7 @@ sub order {
         sort_hands($game);
         broadcast_gamestate($game);
     } else {
-        send_error($p, "Bad vote");
+        send_error($p, BAD_VOTE);
     }
 }
 
@@ -430,7 +473,7 @@ sub play_card {
         if ($msg->{card} !~ /$follower_re/ &&
             grep { $_ =~ /$follower_re/ } @{$p->{hand}}) {
 
-            send_error($p, "Have to follow suit!");
+            send_error($p, FOLLOW_SUIT);
             return;
         }
     }
@@ -561,9 +604,10 @@ sub broadcast_gamestate {
 
 
 sub send_error {
-    my ($p, $msg) = @_;
+    my ($p, $errno) = @_;
     my $ws = $p->{ws};
-    my $json = { msg_type => 'error', msg => $msg };
+    my $msg = defined $ERRORS[$errno] ? $ERRORS[$errno] : 'Unknown error';
+    my $json = { msg_type => 'error', errno => $errno, msg => $msg };
     $ws->send({ json => $json});
 }
 
@@ -607,7 +651,7 @@ sub take_card {
         }
     }
 
-    send_error($p, "You don't have that card!");
+    send_error($p, DONT_HAVE_CARD);
     return 0;
 }
 

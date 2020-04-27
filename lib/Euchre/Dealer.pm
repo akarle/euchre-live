@@ -213,10 +213,6 @@ sub join_game {
         $p->{name} = $msg->{player_name};
         swap_player($game, $p, 'players') || swap_player($game, $p, 'spectators');
     } else {
-        if ($game->{phase} ne 'lobby') {
-            send_error($p, 'Cant join as new player mid game');
-            return;
-        }
         # Add player object to Game
         # All players start as spectators and have to take a seat explicitly
         $p->{name} = $msg->{player_name};

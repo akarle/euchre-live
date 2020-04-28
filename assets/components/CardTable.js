@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
 import {Button, Grid, Row, Column} from 'carbon-components-react';
-import {Logout32} from '@carbon/icons-react';
+import {Logout32, Redo32} from '@carbon/icons-react';
 import SeatPicker from './SeatPicker';
 import MainHand from './MainHand';
 import HiddenHand from './HiddenHand';
@@ -15,6 +15,9 @@ const suit = {
     S: 'Spades',
     C: 'Clubs'
 }
+
+const hard_order = true;
+const hard_pick = true;
 
 export default class CardTable extends React.Component {
 
@@ -49,7 +52,10 @@ export default class CardTable extends React.Component {
             score: [0, 0],
             trickWinner:'',
             tricks:[],
-            bannerMsg: ''
+            bannerMsg: '',
+            innerWinMsg: '',
+            onlyAlone: false,
+            noPick: false
         };
     };
 
@@ -120,8 +126,25 @@ export default class CardTable extends React.Component {
                 case 'play':
                     this.processFirstMsgPlay(msg);
                     break;
+                case 'end':
+                    this.processFirstMsgEnd(msg);
+                    break;
             }
         }
+    }
+
+    // NOTE the processFirstMsgXyz functions are needed to handle the case
+    //  of a user dropping connection and doing a force-rejoin back to the
+    //  same table.
+    // In normal game play, firstMsg will be a 'lobby', and none of the other
+    //  processFirst* variants will be called
+
+    processFirstMsgEnd = msg => {
+        // timer use in these processFirst* is to allow sequence of setState to complete
+        this.initMySeat(msg);
+        setTimeout(this.gameStartSetup, 300, msg);
+        setTimeout(this.handStartSetup, 600, msg);
+        setTimeout(this.processEnd, 900, msg);
     }
 
     processFirstMsgPlay = msg => {
@@ -147,7 +170,8 @@ export default class CardTable extends React.Component {
     processLobby = (msg) => {
         this.initMySeat(msg);
         this.setState({
-            phase: 'lobby'
+            phase: 'lobby',
+            score: [0,0]
         });
     };
 
@@ -162,6 +186,17 @@ export default class CardTable extends React.Component {
         };
     }
 
+    haveSuit = (hand, trumpNom) => {
+        const targetSuit = trumpNom.substring(1);
+        for (let i=0; i < hand.length; i++) {
+            if (hand[i].substring(1) == targetSuit) {
+                console.log('targetSuit:' + targetSuit + ' matched by ' + hand[i]);
+                return true;
+            }
+        }
+        return false;
+    }
+
     processVote = (msg) => {
         if (this.state.phase == 'lobby') {
             this.gameStartSetup(msg);
@@ -170,14 +205,19 @@ export default class CardTable extends React.Component {
                 // second condition is for all players pass trump twice
             this.trumpStartSetup(msg);
         }
-        const {leftSeat, rightSeat, partnerSeat, mySeat} = this.state;
-        const phaseString = msg.game.pass_count > 3 ? 'vote2' : 'vote';
+        const {leftSeat, rightSeat, partnerSeat, mySeat, dealSeat} = this.state;
+        const vote1phase = msg.game.pass_count < 4;
+        const phaseString = vote1phase ? 'vote' : 'vote2';
+        const onlyAlone = hard_order && vote1phase && dealSeat == partnerSeat;
+        const noPick = hard_pick && vote1phase && (dealSeat == mySeat) && !this.haveSuit(msg.hand, msg.game.trump_nominee);
         let turnInfo = ['', '', '', ''];
         turnInfo[msg.game.turn] = 'trump?';
         this.setState({
             phase: phaseString,
             myCards: msg.hand,
             turnSeat: msg.game.turn,
+            onlyAlone: onlyAlone,
+            noPick: noPick,
             leftTurnInfo: turnInfo[leftSeat],
             rightTurnInfo: turnInfo[rightSeat],
             partnerTurnInfo: turnInfo[partnerSeat],
@@ -267,10 +307,12 @@ export default class CardTable extends React.Component {
         const winMsg = finalScore[0] > finalScore[1] ?
             'You and ' + playerNames[partnerSeat] + ' win the game!!' :
             playerNames[leftSeat] + ' and ' + playerNames[rightSeat] + ' win this one...';
+        const innerWin = finalScore[0] > finalScore[1] ? 'You Win!!' : 'You lost...'
         this.setState({
             phase: 'end',
             score: finalScore,
-            bannerMsg: winMsg
+            bannerMsg: winMsg,
+            innerWinMsg: innerWin
         });
     }
 
@@ -415,6 +457,42 @@ export default class CardTable extends React.Component {
         }
     };
 
+    sendRestart = () => {
+        this.props.client.send(JSON.stringify({
+            action:'restart_game'
+        })); 
+    }
+
+    genGameOver = () => {
+        const {innerWinMsg} = this.state;
+        let retVal = [];
+        retVal.push(
+        <div className="gover__outer">
+            <div className="gover__inwin">{innerWinMsg}</div>
+            <div className="gover__inst">
+                You can play again at this table, or return to the lobby
+                to change your table or player name...
+            </div>
+            <div className="gover__buttons">
+                <Button
+                    className="exit2__button"
+                    kind="secondary"
+                    onClick={()=>this.props.chooseTable('')}
+                    renderIcon={Logout32}
+                    >Exit to Lobby</Button> 
+
+                <Button
+                    className="repeat__button"
+                    kind="primary"
+                    onClick={()=>this.sendRestart()}
+                    renderIcon={Redo32}
+                    >Play Again!!</Button> 
+            </div>
+        </div>
+        );
+        return retVal;
+    }
+
     genTrick = () => {
         let retVal = [];
         const { table, mySeat, leftSeat, rightSeat, partnerSeat } = this.state;
@@ -481,8 +559,9 @@ export default class CardTable extends React.Component {
         const { playerNames, mySeat, phase, myCards, myHandInfo, myTurnInfo,
             partnerName, partnerHandInfo, partnerTurnInfo, partnerSeat, leftName, leftTurnInfo, leftHandInfo, leftSeat,
             rightName, rightHandInfo, rightTurnInfo, rightSeat, trumpPlace, trumpNom, turnSeat,
-            dealSeat, trump, handLengths, score, trickWinner, bannerMsg } = this.state;
-        const showSeatPicker = phase == 'lobby' || phase == 'end';
+            dealSeat, trump, handLengths, score, trickWinner, bannerMsg, noPick, onlyAlone } = this.state;
+        const showSeatPicker = phase == 'lobby';
+        const showGameOver = phase == 'end';
         const showTrump = (phase == 'vote') || (phase == 'vote2') || (phase == 'swap');
         const showTrumpPicker = showTrump && (turnSeat == mySeat);
         const showSwap = (phase == 'swap') && (dealSeat == mySeat);
@@ -491,10 +570,11 @@ export default class CardTable extends React.Component {
         const trumpImage = (phase != 'vote2') ? 'cards/' + trumpNom + '.svg' : 'cards/1B.svg';
         const trumpMsg = phase == 'play' ? suit[trump] + ' are trump' : '';
         const trickDisplay = (phase == 'play' || phase == 'pause') ? this.genTrick() : [];
+        const gameOverDisplay = (phase == 'end') ? this.genGameOver() : [];
         return (
             <div id="table" className="table__main">
                 <Grid>
-                    {showSeatPicker && (
+                    {(showSeatPicker || showGameOver) && (
                      <Row className="table__header">
                         <Column className="hd__left" sm={3}>
                             <h3>{bannerMsg}</h3>
@@ -504,7 +584,7 @@ export default class CardTable extends React.Component {
                                 <Button
                                     className="leave__button"
                                     kind="ghost"
-                                    onClick={()=>{this.props.chooseTable('')}}
+                                    onClick={()=>this.props.chooseTable('')}
                                     renderIcon={Logout32}>Exit</Button>
                             </div>
                         </Column>
@@ -564,6 +644,11 @@ export default class CardTable extends React.Component {
                             { (phase=='play' || phase=='pause') && (
                                 <div className="trick__holder">{trickDisplay}</div>
                             )}
+                            { showGameOver && (
+                                <div className="gameOver__holder">
+                                    {gameOverDisplay}
+                                </div>
+                            )}
                         </Column>
                         <Column className="tm__right" sm={1}>
                             {!showSeatPicker && (
@@ -590,6 +675,8 @@ export default class CardTable extends React.Component {
                                     trumpCard={trumpNom}
                                     phaseTwo={phase == 'vote2'}
                                     myDeal={dealSeat == mySeat}
+                                    onlyAlone={onlyAlone}
+                                    noPick={noPick}
                                     handleVote={this.sendVote} />
                             )}
                             {showSwap && (

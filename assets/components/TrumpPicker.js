@@ -42,7 +42,7 @@ class TrumpPicker extends React.Component {
 
 
     render () {
-        const { trumpCard, phaseTwo, myDeal, handleVote } = this.props;
+        const { trumpCard, phaseTwo, myDeal, onlyAlone, noPick, handleVote } = this.props;
         const { suitPick } = this.state;
         const trumpSuit = trumpCard ? trumpCard.substring(1) : 'U';
         const orderLabel = myDeal ? 'Pick up' : 'Order';
@@ -76,14 +76,14 @@ class TrumpPicker extends React.Component {
                         className="p1o__button"
                         kind="primary"
                         size="small"
-                        disabled={disableOrder}
+                        disabled={disableOrder || onlyAlone || noPick}
                         onClick={()=>{handleVote(orderVote)}}
                         >{orderLabel}</Button> 
                     <Button
                         className="p1a__button"
                         kind="primary"
                         size="small"
-                        disabled={disableOrder}
+                        disabled={disableOrder || noPick}
                         onClick={()=>{handleVote(aloneVote)}}
                         >{aloneLabel}</Button> 
                 </div>
@@ -95,6 +95,8 @@ TrumpPicker.propTypes = {
     trumpCard: PropTypes.string,
     phaseTwo: PropTypes.bool,
     myDeal: PropTypes.bool,
+    onlyAlone: PropTypes.bool,
+    noPick: PropTypes.bool,
     handleVote: PropTypes.func,
 }
 export default TrumpPicker;

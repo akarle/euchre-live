@@ -44,9 +44,10 @@ class App extends React.Component {
     }
 
     setPlayerName = name => {
-        this.setState(
-            { playerName: name }
-        );
+        this.setState({
+            playerName: name,
+            uniqueError: false
+        });
     }
 
     // need to only showTable if no user-not-unique

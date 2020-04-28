@@ -4,7 +4,26 @@
     margin-top: 3rem;
     margin-left: 3rem;
 }
-
+.unique__error {
+    margin-top: 1.2rem;
+    color: red;
+}
+.gover__outer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: bisque;
+    padding: 15px;
+}
+.gover__inwin {
+    font-size: 2rem;
+    font-weight: bold;
+}
+.gover__inst {
+    font-size: 1.2rem;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
 .textRow {
     display: flex;
     align-items: flex-start;

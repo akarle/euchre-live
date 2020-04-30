@@ -38,6 +38,7 @@ use constant {
     BAD_VOTE        => 14,
     FOLLOW_SUIT     => 16,
     DONT_HAVE_CARD  => 17,
+    NOT_IN_GAME     => 18,
 };
 
 our @ERRORS = ();
@@ -59,6 +60,7 @@ $ERRORS[VOTE_OFF_KITTY]  = "Can't vote for kitty card suit after turned down";
 $ERRORS[BAD_VOTE]        = "Bad vote";
 $ERRORS[FOLLOW_SUIT]     = "Have to follow suit!";
 $ERRORS[DONT_HAVE_CARD]  = "You don't have that card!";
+$ERRORS[NOT_IN_GAME]     = "You're not in any game";
 
 
 # XXX: The first draft of this was written quickly and chose
@@ -176,6 +178,7 @@ sub handle_msg {
         # Game management endpoints
         ping        => [\&pong],
         join_game   => [\&join_game],
+        leave_game  => [\&leave_game],
         take_seat   => [\&take_seat, 'lobby', CHANGE_SEAT],
         stand_up    => [\&stand_up, 'lobby', STAND_UP],
         start_game  => [\&start_game, 'lobby', START_GAME],
@@ -265,6 +268,33 @@ sub join_game {
     }
 
     broadcast_gamestate($game);
+}
+
+sub leave_game {
+    my ($p) = @_;
+
+    my $game = $p->{game};
+    if (!defined $game) {
+        send_error($p, NOT_IN_GAME);
+        return;
+    }
+
+    delete $p->{game};
+    if (exists $p->{seat}) {
+        $game->{players}->[$p->{seat}] = undef;
+        delete $p->{seat};
+        delete $p->{hand};
+    } else {
+        # Check for specatator
+        for (my $i = 0; $i < @{$game->{spectators}}; $i++) {
+            if ($game->{spectators}->[$i]->{id} eq $p->{id}) {
+                splice(@{$game->{spectators}}, $i, 1);
+                last;
+            }
+        }
+    }
+
+    broadcast_gamestate($game); # let others know
 }
 
 # seat

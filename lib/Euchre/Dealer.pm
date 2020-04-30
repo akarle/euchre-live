@@ -596,6 +596,7 @@ sub broadcast_gamestate {
             msg_type => 'game_state',
             game => $msg,
             hand => $p->{hand},
+            is_spectator => (exists $p->{seat}) ? 0 : 1,
             sit_out => $p->{sit_out},
         };
         $p->{ws}->send({ json => $json });

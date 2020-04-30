@@ -585,9 +585,15 @@ sub play_card {
 sub signal_game_end {
     my ($game) = @_;
 
-    # TODO: send message with winners and end the game
-    # (maybe put game no longer in progress?)
     $game->{phase} = 'end';
+
+    # Put all players into spectator roles. This is crucial so that one player
+    # doesn't walk away and hold up a seat (assuming others want to play again)
+    for my $p (grep { defined } @{$game->{players}}) {
+        delete $p->{seat};
+        push @{$game->{spectators}}, $p;
+    }
+    $game->{players} = [undef, undef, undef, undef];
 }
 
 

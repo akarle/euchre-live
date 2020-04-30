@@ -62,3 +62,7 @@ $ ./run.sh
 
 This is not how it is run in production, as the overhead of webpack is quite
 high.
+
+License
+-------
+MIT

@@ -68,8 +68,9 @@
     function joinGame(force) {
       uname = document.getElementById('username').value;
       gname = document.getElementById('gamename').value;
+      pass  = document.getElementById('password').value;
       console.log('U: ' + uname + ' G: ' + gname);
-      ws.send(JSON.stringify({action:'join_game', player_name: uname, game_id: gname, force: force}))
+      ws.send(JSON.stringify({action:'join_game', player_name: uname, game_id: gname, force: force, password: pass}))
     }
     function sit() {
       seat = document.getElementById('seat_no').value;
@@ -113,6 +114,8 @@
  <input type="text" id="username">
  <label for="gamename">Game:</label>
  <input type="text" id="gamename">
+ <label for="password">Password:</label>
+ <input type="text" id="password">
  <button onclick="joinGame(0)">Join Game</button>
  <button onclick="joinGame(1)">Force Join</button>
  <button onclick="leaveGame()">Leave Game</button>

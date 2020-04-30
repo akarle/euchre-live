@@ -39,6 +39,7 @@ use constant {
     FOLLOW_SUIT     => 16,
     DONT_HAVE_CARD  => 17,
     NOT_IN_GAME     => 18,
+    BAD_PASS        => 19,
 };
 
 our @ERRORS = ();
@@ -61,6 +62,7 @@ $ERRORS[BAD_VOTE]        = "Bad vote";
 $ERRORS[FOLLOW_SUIT]     = "Have to follow suit!";
 $ERRORS[DONT_HAVE_CARD]  = "You don't have that card!";
 $ERRORS[NOT_IN_GAME]     = "You're not in any game";
+$ERRORS[BAD_PASS]        = "Game exists, password incorrect";
 
 
 # XXX: The first draft of this was written quickly and chose
@@ -86,6 +88,7 @@ $ERRORS[NOT_IN_GAME]     = "You're not in any game";
 #           trump_nominee => card,
 #           pass_count => 0-7,
 #           out_player => -1-3, -1 if none, else idx of "out player"
+#           password => string
 #       }
 #
 #   We decided the players would keep track of their own hands
@@ -215,6 +218,7 @@ sub pong {
 # player_name
 # game_id
 # force
+# password (opt)
 sub join_game {
     my ($p, $msg) = @_;
 
@@ -238,11 +242,18 @@ sub join_game {
             score => $ENV{END_DEBUG} ? [9,9] :[0, 0],
             phase => 'lobby',
             start_time => time,
+            (exists $msg->{password} ? (password => $msg->{password}) : ()),
         };
         $TOTAL_GAMES++;
     }
 
     my $game = $GAMES{$id};
+
+    # Before adding, verify the password is correct
+    if (exists $game->{password} && $game->{password} ne $msg->{password}) {
+        send_error($p, BAD_PASS);
+        return;
+    }
 
     # Make sure name is unique to game
     my @all_names = map { $_->{name} }
@@ -717,7 +728,7 @@ sub swap_player {
 sub stats {
     my $num_players = scalar keys %PLAYERS;
     my $num_games = scalar keys %GAMES;
-    
+
     my $msg = "";
     $msg .= "PLAYERS: Join Time\t\tName\tGame\n";
     $msg .= "===========================================================\n";

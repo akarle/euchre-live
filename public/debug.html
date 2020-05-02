@@ -88,7 +88,7 @@
       console.log(order_suit);
       ws.send(JSON.stringify({action:'order', vote: order_suit, loner: a}))
     }
-    function pass() {
+    function pass_kitty() {
       ws.send(JSON.stringify({action:'order', vote: 'pass'}))
     }
     function play(card) {
@@ -145,7 +145,7 @@
    <option value="C">Clubs</option>
  </select>
  <button onclick="vote(1)">Loner</button>
- <button onclick="pass()">Pass</button>
+ <button onclick="pass_kitty()">Pass</button>
  <br><br>
  <div id="error" style="color:red"> </div>
  <br><br>

@@ -121,7 +121,7 @@ sub handle_msg {
 
 sub pong {
     my ($p) = @_;
-    $p->ws->send({ json => { msg_type => 'pong' } });
+    $p->send({ msg_type => 'pong' });
 }
 
 # player_name
@@ -540,7 +540,7 @@ sub broadcast_gamestate {
             hand => $p->hand,
             is_spectator => ($p->seat) ? 0 : 1,
         };
-        $p->ws->send({ json => $json });
+        $p->send($json);
     }
 }
 
@@ -663,7 +663,7 @@ sub chat {
             msg_type => 'chat',
             msg => "$p->name: $msg->{msg}"
         };
-        $player->ws->send({ json => $json });
+        $player->send($json);
     }
 }
 

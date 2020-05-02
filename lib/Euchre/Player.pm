@@ -28,7 +28,13 @@ sub error {
         errno => $errno,
         msg => err_msg($errno),
     };
-    $self->ws->send({ json => $json});
+    $self->send($json);
+}
+
+# Send a JSON message
+sub send {
+    my ($self, $json) = @_;
+    $self->ws->send({ json => $json });
 }
 
 1;

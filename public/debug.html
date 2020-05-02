@@ -43,7 +43,7 @@
           document.getElementById('hand').innerHTML += '<img onclick="play(' + "'" +  c + "'" + ')" class="card" src="cards/' + c + '.svg">'
         }
 
-        if (msg.game.table.length) {
+        if (msg.game.table) {
           document.getElementById('table').innerHTML = ''
           for (var i = 0; i < msg.game.table.length; i++) {
             var c = msg.game.table[i]

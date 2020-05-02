@@ -7,6 +7,7 @@ package Euchre::Dealer;
 use Mojo::IOLoop;
 use List::Util qw(sum);
 
+use Euchre::Errors;
 use Euchre::Rules;
 
 require Exporter;
@@ -18,51 +19,6 @@ our @EXPORT = qw(
     stats
 );
 
-# NOTE: Append ONLY for client compatibility
-use constant {
-    CHANGE_SEAT     => 0,
-    STAND_UP        => 1,
-    START_GAME      => 2,
-    RESTART_GAME    => 3,
-    ORDER           => 4,
-    DEALER_SWAP     => 5,
-    PLAY_CARD       => 6,
-    TURN            => 7,
-    UNIQUE_USER     => 8,
-    INVALID_SEAT    => 9,
-    TAKEN_SEAT      => 10,
-    ALREADY_STANDING => 11,
-    PARTIAL_GAME    => 12,
-    VOTE_ON_KITTY   => 13,
-    VOTE_OFF_KITTY  => 14,
-    BAD_VOTE        => 14,
-    FOLLOW_SUIT     => 16,
-    DONT_HAVE_CARD  => 17,
-    NOT_IN_GAME     => 18,
-    BAD_PASS        => 19,
-};
-
-our @ERRORS = ();
-$ERRORS[CHANGE_SEAT]     = "Can't change seats during game";
-$ERRORS[STAND_UP]        = "Can't change seats during game";
-$ERRORS[START_GAME]      = "Game already started";
-$ERRORS[RESTART_GAME]    = "Game hasn't ended";
-$ERRORS[ORDER]           = "Not time for a vote";
-$ERRORS[DEALER_SWAP]     = "Can't swap with Kitty now";
-$ERRORS[PLAY_CARD]       = "Can't play cards yet";
-$ERRORS[TURN]            = "Not your turn";
-$ERRORS[UNIQUE_USER]     = "Username not unique; is this you?";
-$ERRORS[INVALID_SEAT]    = "Invalid seat";
-$ERRORS[TAKEN_SEAT]      = "Seat is taken";
-$ERRORS[ALREADY_STANDING] = "Already standing!";
-$ERRORS[PARTIAL_GAME]    = "Can't start with empty seats";
-$ERRORS[VOTE_ON_KITTY]   = "Must vote on kitty's suit";
-$ERRORS[VOTE_OFF_KITTY]  = "Can't vote for kitty card suit after turned down";
-$ERRORS[BAD_VOTE]        = "Bad vote";
-$ERRORS[FOLLOW_SUIT]     = "Have to follow suit!";
-$ERRORS[DONT_HAVE_CARD]  = "You don't have that card!";
-$ERRORS[NOT_IN_GAME]     = "You're not in any game";
-$ERRORS[BAD_PASS]        = "Game exists, password incorrect";
 
 
 # XXX: The first draft of this was written quickly and chose
@@ -654,8 +610,11 @@ sub broadcast_gamestate {
 sub send_error {
     my ($p, $errno) = @_;
     my $ws = $p->{ws};
-    my $msg = defined $ERRORS[$errno] ? $ERRORS[$errno] : 'Unknown error';
-    my $json = { msg_type => 'error', errno => $errno, msg => $msg };
+    my $json = {
+        msg_type => 'error',
+        errno => $errno,
+        msg => err_msg($errno),
+    };
     $ws->send({ json => $json});
 }
 

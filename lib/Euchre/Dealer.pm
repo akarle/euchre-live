@@ -298,7 +298,7 @@ sub start_new_round {
     deal_players_hands($game);
 
     # Signal vote of player next to dealer...
-    reset_turn($game);
+    $game->reset_turn();
     $game->phase('vote');
     $game->pass_count(0);
     broadcast_gamestate($game); # includes trump_nominee
@@ -325,7 +325,7 @@ sub order {
 
     my $game = $p->game;
     if ($msg->{vote} eq 'pass') {
-        next_turn($game);
+        $game->next_turn();
         $game->pass_count($game->pass_count + 1);
         if ($game->pass_count >= 8) {
             # Throw em in
@@ -365,7 +365,7 @@ sub order {
         } else {
             # Get right to it!
             $game->phase('play');
-            reset_turn($game);
+            $game->reset_turn();
         }
 
         sort_hands($game);
@@ -418,7 +418,7 @@ sub play_card {
 
     # Update the table and current player
     $game->table->[$seat] = $msg->{card};
-    next_turn($game);
+    $game->next_turn();
 
 
     my $played_cards = scalar grep { defined } @{$game->table};
@@ -506,7 +506,7 @@ sub dealer_swap {
 
     # Start the game
     $game->phase('play');
-    reset_turn($game);
+    $game->reset_turn();
     broadcast_gamestate($game);
 }
 
@@ -542,24 +542,6 @@ sub broadcast_gamestate {
         };
         $p->send($json);
     }
-}
-
-
-sub next_turn {
-    my ($game) = @_;
-
-    my $turn = ($game->turn + 1) % 4;
-    if ($turn == $game->out_player) {
-        # It's a loner! Only gonna be one of these...
-        $turn = ($turn + 1) % 4;
-    }
-    $game->turn($turn);
-}
-
-sub reset_turn {
-    my ($game) = @_;
-    $game->turn($game->dealer);
-    next_turn($game);
 }
 
 # We only need this when trump suit voted, not every broadcast

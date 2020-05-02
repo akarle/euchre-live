@@ -1,10 +1,10 @@
-# Euchre::Game -- the Game Logic
-# All card interactions are based on ID for ~speed~
-# Leaves it to client to map from 'names' (i.e. AH -> 5)
+# Euchre::Rules -- the core Game Logic
+#
+# (previously called Euchre::Game before the great(?) OOP refactor)
 use strict;
 use warnings;
 
-package Euchre::Game;
+package Euchre::Rules;
 
 require Exporter;
 our @ISA = qw(Exporter);

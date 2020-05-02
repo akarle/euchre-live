@@ -1,12 +1,12 @@
 #!/usr/bin/env perl
-# Game.t -- tests for Euchre::Game
+# Rules.t -- tests for Euchre::Rules
 use strict;
 use warnings;
 
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 
-use Euchre::Game;
+use Euchre::Rules;
 use List::Util;
 use Test::More;
 

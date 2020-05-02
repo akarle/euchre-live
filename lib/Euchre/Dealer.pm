@@ -7,7 +7,7 @@ package Euchre::Dealer;
 use Mojo::IOLoop;
 use List::Util qw(sum);
 
-use Euchre::Game;
+use Euchre::Rules;
 
 require Exporter;
 our @ISA = qw(Exporter);

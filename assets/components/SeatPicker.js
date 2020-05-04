@@ -26,6 +26,7 @@ class SeatPicker extends React.Component {
     };
     
     tableSeat = (name, index) => {
+        const { amSpectator } = this.props;
         const taken = name != 'Empty';
         const mine = index === this.props.mySeat;
         const iAmSeated = -1 != this.props.mySeat;
@@ -39,7 +40,7 @@ class SeatPicker extends React.Component {
                     renderIcon={Package32}>Choose seat</Button>
                 )}
                 {(taken || iAmSeated) && (<div className="spName">{name}</div>)}
-                {taken && mine && (
+                {taken && mine && !amSpectator && (
                     <Button
                     className="stand__button"
                     kind="ghost"
@@ -51,9 +52,10 @@ class SeatPicker extends React.Component {
     }
 
     render () {
-        const { names } = this.props;
+        const { names, amSpectator } = this.props;
         const { startDealer } = this.state;
-        const allSeated = this.allSeated(names);
+        // if all seats taken but mine is not 0-3 then I'm a spectator
+        const allSeated = !amSpectator && this.allSeated(names);
         const pickerNames = names.slice(0);
         pickerNames.unshift('Random');
         return (
@@ -102,6 +104,7 @@ class SeatPicker extends React.Component {
 SeatPicker.propTypes = {
     mySeat: PropTypes.number,
     names: PropTypes.arrayOf(PropTypes.string),
+    amSpectator: PropTypes.bool,
     handleSit: PropTypes.func,
     handleStand: PropTypes.func,
     handleStart: PropTypes.func

@@ -38,9 +38,11 @@
         }
 
         document.getElementById('hand').innerHTML = 'HAND: <br>'
-        for (var i = 0; i < msg.hand.length; i++) {
-          var c = msg.hand[i]
-          document.getElementById('hand').innerHTML += '<img onclick="play(' + "'" +  c + "'" + ')" class="card" src="cards/' + c + '.svg">'
+        if (msg.hand) {
+          for (var i = 0; i < msg.hand.length; i++) {
+            var c = msg.hand[i]
+            document.getElementById('hand').innerHTML += '<img onclick="play(' + "'" +  c + "'" + ')" class="card" src="cards/' + c + '.svg">'
+          }
         }
 
         if (msg.game.table) {
@@ -70,7 +72,7 @@
       gname = document.getElementById('gamename').value;
       pass  = document.getElementById('password').value;
       console.log('U: ' + uname + ' G: ' + gname);
-      ws.send(JSON.stringify({action:'join_game', player_name: uname, game_id: gname, force: force, password: pass}))
+      ws.send(JSON.stringify({action:'join_table', player_name: uname, table: gname, force: force, password: pass}))
     }
     function sit() {
       seat = document.getElementById('seat_no').value;
@@ -103,7 +105,7 @@
       document.getElementById('chat').value = '';
     }
     function leaveGame() {
-      ws.send(JSON.stringify({action:'leave_game'}))
+      ws.send(JSON.stringify({action:'leave_table'}))
     }
 
     window.setInterval(() => { ws.send(JSON.stringify({action:'ping'})) }, 5000);

@@ -8,7 +8,7 @@ use Mojo::JSON qw(decode_json);
 use FindBin;
 use lib "$FindBin::RealBin/lib";
 
-use Euchre::Dealer;
+use Euchre::Host;
 
 plugin Webpack => {process => [qw(js css sass)]};
 
@@ -33,7 +33,7 @@ websocket '/play' => sub {
     my $id = ''.$c->tx;
     app->log->debug("New player: $id");
 
-    # Register the player with the Dealer
+    # Register the player with the server
     register_player($c->tx);
 
     $c->on(message => sub {

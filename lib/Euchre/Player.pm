@@ -6,19 +6,9 @@ package Euchre::Player;
 
 use Euchre::Errors;
 
-#       {
-#           id   => client id (key in %PLAYERS)
-#           name => username,
-#           seat => undef OR 0-3,
-#           ws   => websocket obj,
-#           active => ...
-#       }
-#
-use Class::Tiny qw(id ws seat game), {
-    joined => sub { time },
-    name   => 'Anon',
-    hand   => sub { [] },
-    active => 1,
+use Class::Tiny qw(id ws start_time), {
+    seat => -1, # spectator
+    name => 'Anon',
 };
 
 sub error {
@@ -35,6 +25,21 @@ sub error {
 sub send {
     my ($self, $json) = @_;
     $self->ws->send({ json => $json });
+}
+
+sub is_spectator {
+    my ($self) = @_;
+    return $self->seat == -1;
+}
+
+sub stand_up {
+    my ($self) = @_;
+    if ($self->is_spectator) {
+        return ALREADY_STANDING;
+    } else {
+        $self->seat(-1);
+    }
+    return SUCCESS;
 }
 
 1;

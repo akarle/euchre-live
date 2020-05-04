@@ -6,7 +6,7 @@ package Euchre::Errors;
 
 # NOTE: Append ONLY for client compatibility
 use constant {
-    CHANGE_SEAT     => 0,
+    SUCCESS         => 0,
     STAND_UP        => 1,
     START_GAME      => 2,
     RESTART_GAME    => 3,
@@ -21,17 +21,20 @@ use constant {
     PARTIAL_GAME    => 12,
     VOTE_ON_KITTY   => 13,
     VOTE_OFF_KITTY  => 14,
-    BAD_VOTE        => 14,
+    BAD_VOTE        => 15,
     FOLLOW_SUIT     => 16,
     DONT_HAVE_CARD  => 17,
     NOT_IN_GAME     => 18,
     BAD_PASS        => 19,
+    NOT_AT_TABLE    => 20,
+    CHANGE_SEAT     => 21,
 };
 
 require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(
     err_msg
+    SUCCESS
     CHANGE_SEAT
     STAND_UP
     START_GAME
@@ -52,6 +55,7 @@ our @EXPORT = qw(
     DONT_HAVE_CARD
     NOT_IN_GAME
     BAD_PASS
+    NOT_AT_TABLE
 );
 
 our @ERR_MSGS = ();
@@ -75,6 +79,7 @@ $ERR_MSGS[FOLLOW_SUIT]     = "Have to follow suit!";
 $ERR_MSGS[DONT_HAVE_CARD]  = "You don't have that card!";
 $ERR_MSGS[NOT_IN_GAME]     = "You're not in any game";
 $ERR_MSGS[BAD_PASS]        = "Game exists, password incorrect";
+$ERR_MSGS[NOT_AT_TABLE]    = "Need to be at a table for action";
 
 sub err_msg {
     my ($errno) = @_;

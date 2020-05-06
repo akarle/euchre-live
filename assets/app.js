@@ -101,7 +101,7 @@ class App extends React.Component {
         }, () => {
             if (tableName && tableName != ''){
                 client.send(JSON.stringify({
-                    action:'join_game',
+                    action:'join_table',
                     player_name: this.state.playerName,
                     game_id: tableName
                 }));    
@@ -114,7 +114,7 @@ class App extends React.Component {
         // should only be calling this on unique error and user wants force rejoin
         //  so all other state should be correct
         client.send(JSON.stringify({
-            action:'join_game',
+            action:'join_table',
             player_name: this.state.playerName,
             game_id: this.state.tableName,
             force: true
@@ -122,10 +122,10 @@ class App extends React.Component {
     }
 
     setFakeGame = (initialName, initialTable) => {
-        client.send(JSON.stringify({ action:'join_game', player_name: initialName, game_id: initialTable }));
-        fc1.send(JSON.stringify({ action:'join_game', player_name: 'Betty', game_id: initialTable }));
-        fc2.send(JSON.stringify({ action:'join_game', player_name: 'CJ', game_id: initialTable }));
-        fc3.send(JSON.stringify({ action:'join_game', player_name: 'Dana', game_id: initialTable }));
+        client.send(JSON.stringify({ action:'join_table', player_name: initialName, game_id: initialTable }));
+        fc1.send(JSON.stringify({ action:'join_table', player_name: 'Betty', game_id: initialTable }));
+        fc2.send(JSON.stringify({ action:'join_table', player_name: 'CJ', game_id: initialTable }));
+        fc3.send(JSON.stringify({ action:'join_table', player_name: 'Dana', game_id: initialTable }));
         fc1.send(JSON.stringify({ action:'take_seat', seat: 0 }));
         fc2.send(JSON.stringify({ action:'take_seat', seat: 1 }));
         fc3.send(JSON.stringify({ action:'take_seat', seat: 2 }));

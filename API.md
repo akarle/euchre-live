@@ -6,37 +6,37 @@ endpoint:
 
     ws://HOST:PORT/play
 
-Client Actions
---------------
+General Client Actions
+----------------------
 Each message from a client should have the "action" key with one of the
 following values, along with additional info as needed.
 
 For example, `ping` would be `{ "action": "ping" }`.
 
-### Actions Outside a Table
-
-#### `ping`
+### `ping`
 
 Tells the server you're still alive (15s without any message will result in
 being booted from the game).
 
 Response will be `{ "msg_type": "pong" }`.
 
-#### `join_table`
+### `join_table`
+
+Joins a table to play (or spectate). First player to join creates the table
+(with a password, if given).  Additional players are required to provide that
+password.
+
+`table` + `player_name` must be a unique combo on the server.
 
 Properties:
+
 - `table`: Required, table name to join (i.e. "Party")
 - `player_name`: Required, display name for table
 - `password`: Optional, password for table
 
-First player to join creates the table (with a password, if givin).
-Additional players are required to provide that password.
-
-`table` + `player_name` must be a unique combo on the server.
-
 Gamestate will be broadcasted to all players on success.
 
-#### `leave_table`
+### `leave_table`
 
 Remove player from table (standing up out of seat if necessary).
 Hand is managed by game, so this is OK to call without destroying the
@@ -44,12 +44,13 @@ game state.
 
 No response on success.
 
-#### `list_tables`
+### `list_tables`
 
 WIP to enable a table discovery frontend. More info coming.
 
 
-### In-Game Messages
+In-Game Actions
+----------------
 
 Same as before, requiring the "action" property. On success, all actions
 [broadcast game state](#Server Responses) to all players (spectators and
@@ -60,87 +61,104 @@ checked by the client. An error message will be given to the client if a
 prereq isn't met (ex: playing out of turn). This simplifies client creation
 considerably.
 
-#### `chat`
+### `chat`
+
+Sends chat message to all other Players at table.
 
 Properties:
+
 - `msg`: Required, message to send to other players
 
 Responds with `{ "msg_type": "chat", "msg": "PLAYER: msg" }` to all players.
 
-#### `take_seat`
+### `take_seat`
+
+Sits player at table.
 
 Properties:
+
 - `seat`: Required, 0-3 integer, open seat to occupy
 
-#### `stand_up`
+### `stand_up`
 
 If seated, moves player to spectator view
 
-#### `start_game`
+### `start_game`
 
 Kicks off the first deal and starts the game.
 
 Properties:
+
 - `start_seat`: Optional, -1-3. -1 means random starting player, 0-3
   means that seat should be the first dealer.
 
 Prerequisites:
-* Only valid during the `lobby` phase
-* 4 players must be seated
 
-#### `restart_game`
+- Only valid during the `lobby` phase
+- 4 players must be seated
+
+### `restart_game`
 
 Creates a new Game entirely (resets table, scores, hands, etc).
 
 Prerequisites:
-* Only valid during the `end` phase
 
-#### `order`
+- Only valid during the `end` phase
+
+### `order`
+
+Orders dealer that `vote` suit should be trump (or passes). Server handles
+validation of what suits can be nominated.
 
 Properties:
+
 - `vote`: either suit ('H', 'D', 'S', 'C') or 'pass'
 - `loner`: 0 or 1
 
-Only accepted during the trump suit selection phase. Server handles
-validation of what suits can be nominated.
-
 Prerequisites:
-* Must be player's turn to act.
-* Only valid during the `vote` phase
 
-#### `play_card`
+- Must be player's turn to act.
+- Only valid during the `vote` phase
+
+### `play_card`
+
+Plays card from player's hand. Server handles validation of whether the current
+player truly has that card (and whether it is legal to play, i.e. following
+suit).
 
 Properties:
+
 - `card`: two letter unique card. ex:
   - 'NH' -- nine of hearts
   - 'AS' -- ace of spades
   - 'TD' -- ten of diamonds
 
-Server handles validation of whether the current player truly has that card
-(and whether it is legal to play, i.e. following suit).
-
 Prerequisites:
-* Must be player's turn to act.
-* Only valid during the `play` phase
 
-#### `dealer_swap`
+- Must be player's turn to act.
+- Only valid during the `play` phase
 
-Properties:
-- `card`: Same as `play_card`
+### `dealer_swap`
 
 Swaps dealer's card with the kitty card (like `play_card`, server validates
 the card is in dealer's hand).
 
-Prerequisites:
-* Must be the dealer
-* Only valid during the `dealer_swap` phase
+Properties:
 
-### Server Responses
+- `card`: Same as `play_card`
+
+Prerequisites:
+
+- Must be the dealer
+- Only valid during the `dealer_swap` phase
+
+Server Responses
+----------------
 
 All server responses have the `msg_type` property, which the below sections
 all represent.
 
-#### `error`
+### `error`
 
 As mentioned above, the server handles most of the coordination logic for the
 clients (who's turn is it, do you have that card, etc). This prevents both
@@ -155,7 +173,7 @@ respond to the client with an error:
 write custom error handling. See [Euchre::Errors](lib/Euchre/Errors.pm) for
 the human readable constants.
 
-#### `game_state`
+### `game_state`
 
 This is the most common message from the server. It represents the game state,
 and is sent on every successful action from any player to all other players at
@@ -192,13 +210,13 @@ Some general comments:
 * `players` are the players names in order of seats
 * `hand` is only present for players in the game
 
-#### `chat`
+### `chat`
 
 Broadcasted to all players at table with the contents of a `chat` action.
 
 Not logged on the server, only shown to clients that watch it.
 
-#### `pong`
+### `pong`
 
 Response to `ping`. (Side note: I _know_ this isn't how one should properly
 handle ping/pong frames, but this is an MVP here and my first foray into

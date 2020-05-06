@@ -188,18 +188,18 @@ sub broadcast_gamestate {
 
     my $msg = {
         %{$self->game},
-        hands => 'redacted',
         players => $self->player_names,
         spectators => \@snames,
         hand_lengths => $self->game->hand_lengths,
     };
+    delete $msg->{hands};
 
     for my $p (values %{$self->players}) {
 
         my $json = {
             msg_type => 'game_state',
             game => $msg,
-            is_spectator => $p->is_spectator,
+            is_spectator => $p->is_spectator ? 1 : 0,
         };
 
         if (!$p->is_spectator) {

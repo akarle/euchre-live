@@ -22,7 +22,7 @@
 
       if (msg.msg_type === 'game_state') {
         GAME_PHASE = msg.game.phase;
-        gameState = '<br>Game:          ' + msg.game.id + '<br>' +
+        gameState = '<br>Game:          ' + msg.table_id + '<br>' +
           'Players:       ' + msg.game.players + '<br>' +
           'Spectators:    ' + msg.game.spectators + '<br>' +
           'Game Phase:  '   + msg.game.phase + '<br>' +

@@ -181,6 +181,7 @@ The response looks like this:
   }
   "hand": [ "TH", "JD", "KD", ... ],
   "is_spectator": 0,
+  "table_id": "The Cool Kids Table",
 }
 ```
 

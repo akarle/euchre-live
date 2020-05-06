@@ -200,6 +200,7 @@ sub broadcast_gamestate {
             msg_type => 'game_state',
             game => $msg,
             is_spectator => $p->is_spectator ? 1 : 0,
+            table_id => $self->id,
         };
 
         if (!$p->is_spectator) {

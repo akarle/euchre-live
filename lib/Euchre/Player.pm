@@ -6,10 +6,17 @@ package Euchre::Player;
 
 use Euchre::Errors;
 
-use Class::Tiny qw(id ws start_time), {
+use Class::Tiny qw(id ws), {
     seat => -1, # spectator
     name => 'Anon',
+    start_time => sub { time },
 };
+
+sub BUILD {
+    my ($self) = @_;
+    # de lazy the attributes
+    $self->$_ for qw(seat name start_time);
+}
 
 sub error {
     my ($self, $errno) = @_;

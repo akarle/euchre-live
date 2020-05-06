@@ -9,11 +9,18 @@ package Euchre::Dealer;
 use Euchre::Errors;
 use Euchre::Game;
 
-use Class::Tiny qw(id start_time), {
+use Class::Tiny qw(id), {
     password => '',
     game     => sub { Euchre::Game->new() },
     players  => sub { {} },
+    start_time => sub { time },
 };
+
+sub BUILD {
+    my ($self) = @_;
+    # de lazy the attributes
+    $self->$_ for qw(start_time);
+}
 
 sub add_player {
     my ($self, $p, $password) = @_;

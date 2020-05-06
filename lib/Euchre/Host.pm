@@ -36,7 +36,6 @@ sub register_player {
     $PLAYERS{$id} = Euchre::Player->new(
         id => $id,
         ws => $tx,
-        start_time => time,
     );
     $TOTAL_PLAYERS++;
 }
@@ -123,7 +122,6 @@ sub join_table {
     if (!exists $DEALERS{$tid}) {
         $DEALERS{$tid} = Euchre::Dealer->new(
             id => $tid,
-            start_time => time,
             (exists $msg->{password} ? (password => $msg->{password}) : ()),
         );
         $TOTAL_TABLES++;

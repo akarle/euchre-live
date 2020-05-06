@@ -18,8 +18,14 @@ use Class::Tiny qw(trump out_player turn dealer caller pass_count led trump_nomi
     tricks     => sub { [0, 0, 0, 0] },
     table      => sub { [undef, undef, undef, undef] },
     score      => sub { $ENV{END_DEBUG} ? [9, 9] : [0, 0] },
-    start_time => sub { time },
 };
+
+sub BUILD {
+    # Access some of the fields so that they are present in game_state from
+    # the get-go (not waiting for lazy creation)
+    my ($self) = @_;
+    $self->$_ for qw(phase hands tricks table score);
+}
 
 sub next_turn {
     my ($self) = @_;

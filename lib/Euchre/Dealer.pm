@@ -150,7 +150,8 @@ sub start_game {
 
 sub restart_game {
     my ($self) = @_;
-    $self->game = Euchre::Game->new();
+    $self->game(Euchre::Game->new());
+    return SUCCESS;
 }
 
 sub num_players {

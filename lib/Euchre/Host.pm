@@ -157,6 +157,13 @@ sub leave_table {
     if (my $errno = $d->remove_player($p)) {
         $p->error($errno);
     } else {
+        # Success! Was removed properly, delete PINDEX
+        # Also delete the Dealer itself if that was the last player
+        # to leave and the game looks finished
+        if (!$d->is_active && $d->game->phase eq 'end') {
+            printf "Deleting Table %s that appears to have finished\n", $d->id;
+            delete $DEALERS{$PINDEX{$p->{id}}};
+        }
         delete $PINDEX{$p->{id}};
     }
 }

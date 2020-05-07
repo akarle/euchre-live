@@ -212,6 +212,8 @@ sub broadcast_gamestate {
 
         if (!$p->is_spectator) {
             $json->{hand} = $self->game->hands->[$p->seat];
+        } else {
+            $json->{hand} = [];
         }
         $p->send($json);
     }

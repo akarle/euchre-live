@@ -268,4 +268,11 @@ sub player_names {
     return $seated;
 }
 
+# Used to decide when to cleanup
+sub is_active {
+    my ($self) = @_;
+    my $n = scalar keys %{$self->players};
+    return $n != 0;
+}
+
 1;

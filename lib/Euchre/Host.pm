@@ -15,6 +15,7 @@ our @EXPORT = qw(
     handle_msg
     register_player
     gloaters_never_win
+    prune_tables
     stats
 );
 
@@ -201,6 +202,16 @@ sub require_keys {
         }
     }
     return 1;
+}
+
+# Prune empty tables, to be called in a IOLoop
+sub prune_tables {
+    for my $k (keys %DEALERS) {
+        if (!$DEALERS{$k}->is_active) {
+            print "Deleting inactive table " . $DEALERS{$k}->id . "\n";
+            delete $DEALERS{$k};
+        }
+    }
 }
 
 1;

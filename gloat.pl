@@ -5,6 +5,7 @@
 #		~ Andy Karle
 use Mojolicious::Lite;
 use Mojo::JSON qw(decode_json);
+use Mojo::IOLoop;
 use FindBin;
 use lib "$FindBin::RealBin/lib";
 
@@ -45,5 +46,8 @@ websocket '/play' => sub {
         gloaters_never_win($id);
     });
 };
+
+my $cleanup_time = $ENV{DEBUG} ? 1 : 300;
+Mojo::IOLoop->recurring($cleanup_time => \&prune_tables);
 
 app->start;

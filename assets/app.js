@@ -103,7 +103,7 @@ class App extends React.Component {
                 client.send(JSON.stringify({
                     action:'join_table',
                     player_name: this.state.playerName,
-                    game_id: tableName
+                    table: tableName
                 }));    
             }
         });
@@ -116,16 +116,16 @@ class App extends React.Component {
         client.send(JSON.stringify({
             action:'join_table',
             player_name: this.state.playerName,
-            game_id: this.state.tableName,
+            table: this.state.tableName,
             force: true
         }));    
     }
 
     setFakeGame = (initialName, initialTable) => {
-        client.send(JSON.stringify({ action:'join_table', player_name: initialName, game_id: initialTable }));
-        fc1.send(JSON.stringify({ action:'join_table', player_name: 'Betty', game_id: initialTable }));
-        fc2.send(JSON.stringify({ action:'join_table', player_name: 'CJ', game_id: initialTable }));
-        fc3.send(JSON.stringify({ action:'join_table', player_name: 'Dana', game_id: initialTable }));
+        client.send(JSON.stringify({ action:'join_table', player_name: initialName, table: initialTable }));
+        fc1.send(JSON.stringify({ action:'join_table', player_name: 'Betty', table: initialTable }));
+        fc2.send(JSON.stringify({ action:'join_table', player_name: 'CJ', table: initialTable }));
+        fc3.send(JSON.stringify({ action:'join_table', player_name: 'Dana', table: initialTable }));
         fc1.send(JSON.stringify({ action:'take_seat', seat: 0 }));
         fc2.send(JSON.stringify({ action:'take_seat', seat: 1 }));
         fc3.send(JSON.stringify({ action:'take_seat', seat: 2 }));

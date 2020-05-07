@@ -58,22 +58,22 @@ sub handle_msg {
 
     # Crazy magic dispatch of
     #
-    #   action => [ handler, req-phase, phase-err, needs-turn ]
+    #   action => [ handler, req-keys, req-phase, phase-err, needs-turn ]
     #
     # The last three are optional, but are useful to dedupe common
     # assertions (like, needs to be their turn)
     my %dispatch = (
         # Game management endpoints
-        chat         => [\&chat],
-        take_seat    => [\&take_seat],
-        stand_up     => [\&stand_up],
-        start_game   => [\&start_game, 'lobby', START_GAME],
-        restart_game => [\&restart_game, 'end', RESTART_GAME],
+        chat         => [\&chat, ['msg']],
+        take_seat    => [\&take_seat, ['seat']],
+        stand_up     => [\&stand_up, []],
+        start_game   => [\&start_game, [], 'lobby', START_GAME],
+        restart_game => [\&restart_game, [], 'end', RESTART_GAME],
 
         # Gameplay
-        order        => [\&order, 'vote', ORDER, 1],
-        dealer_swap  => [\&dealer_swap, 'dealer_swap', DEALER_SWAP, 1],
-        play_card    => [\&play_card, 'play', PLAY_CARD, 1],
+        order        => [\&order, ['vote', 'loner'], 'vote', ORDER, 1],
+        dealer_swap  => [\&dealer_swap, ['card'], 'dealer_swap', DEALER_SWAP, 1],
+        play_card    => [\&play_card, ['card'], 'play', PLAY_CARD, 1],
     );
 
 
@@ -83,7 +83,18 @@ sub handle_msg {
     }
 
     my $p = $self->players->{$cid};
-    my ($handler, $req_phase, $phase_err, $turn_based) = @{$dispatch{$msg->{action}}};
+    my ($handler, $req_keys, $req_phase, $phase_err, $turn_based) =
+        @{$dispatch{$msg->{action}}};
+
+    # Validate that all required msg keys are present
+    for my $k (@$req_keys) {
+        if (!exists $msg->{$k}) {
+            $p->error(MISSING_PARAM);
+            return;
+        }
+    }
+
+    # Next validate phase, turn, and handle success/failure
     if ($req_phase && ($self->game->phase ne $req_phase)) {
         $p->error($phase_err);
     } elsif ($turn_based && ($p->seat != $self->game->turn)) {

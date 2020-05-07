@@ -114,6 +114,8 @@ sub pong {
 sub join_table {
     my ($p, $msg) = @_;
 
+    require_keys(@_, qw(table player_name)) or return;
+
     my $tid = $msg->{table};
 
     $p->name($msg->{player_name});
@@ -188,6 +190,17 @@ sub stats {
     $msg .= "\n\nUptime: " . `uptime`;
 
     return $msg;
+}
+
+sub require_keys {
+    my ($p, $msg, @req_keys) = @_;
+    for my $k (@req_keys) {
+        if (!exists $msg->{$k}) {
+            $p->error(MISSING_PARAM);
+            return 0;
+        }
+    }
+    return 1;
 }
 
 1;

@@ -28,6 +28,7 @@ use constant {
     BAD_PASS        => 19,
     NOT_AT_TABLE    => 20,
     CHANGE_SEAT     => 21,
+    MISSING_PARAM   => 22,
 };
 
 require Exporter;
@@ -56,6 +57,7 @@ our @EXPORT = qw(
     NOT_IN_GAME
     BAD_PASS
     NOT_AT_TABLE
+    MISSING_PARAM
 );
 
 our @ERR_MSGS = ();
@@ -80,6 +82,7 @@ $ERR_MSGS[DONT_HAVE_CARD]  = "You don't have that card!";
 $ERR_MSGS[NOT_IN_GAME]     = "You're not in any game";
 $ERR_MSGS[BAD_PASS]        = "Game exists, password incorrect";
 $ERR_MSGS[NOT_AT_TABLE]    = "Need to be at a table for action";
+$ERR_MSGS[MISSING_PARAM]   = "Server received incomplete message";
 
 sub err_msg {
     my ($errno) = @_;

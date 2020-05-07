@@ -117,6 +117,15 @@ sub join_table {
 
     require_keys(@_, qw(table player_name)) or return;
 
+    # If currently at a table, leave it (safe to call if not at a table) This
+    # is important because some clients may not have implemented the
+    # leave_table in all cases, and we need to prevent one Player from having
+    # multiple Tables for a whole lot of reasons (messages from multiple
+    # tables, failure to detect and cleanup state, etc)
+    if (exists $PINDEX{$p->{id}}) {
+        leave_table($p);
+    }
+
     my $tid = $msg->{table};
 
     $p->name($msg->{player_name});

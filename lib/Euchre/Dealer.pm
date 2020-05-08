@@ -71,7 +71,7 @@ sub handle_msg {
         restart_game => [\&restart_game, [], 'end', RESTART_GAME],
 
         # Gameplay
-        order        => [\&order, ['vote', 'loner'], 'vote', ORDER, 1],
+        order        => [\&order, ['vote'], 'vote', ORDER, 1],
         dealer_swap  => [\&dealer_swap, ['card'], 'dealer_swap', DEALER_SWAP, 1],
         play_card    => [\&play_card, ['card'], 'play', PLAY_CARD, 1],
     );

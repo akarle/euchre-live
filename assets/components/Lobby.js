@@ -114,13 +114,6 @@ export default class Lobby extends React.Component {
                 <div className="unique__error">
                     <h3>Hmm, a player named {name} is at the table...</h3>
                     <p>You need a unique player name, which you can change in the top input above.</p>
-                    <p><strong>OR </strong> if you lost your connection and want to re-join the
-                    game as player &quot;{name}&quot; from this page, press the REJOIN button below</p>
-                    <Button
-                        className="rejoin__button"
-                        kind="primary"
-                        onClick={()=>this.props.forceJoin()}
-                        >REJOIN</Button> 
                 </div>
                 )}
             </div>
@@ -132,6 +125,5 @@ Lobby.propTypes = {
     setName: PropTypes.func,
     chooseTable: PropTypes.func,
     name: PropTypes.string,
-    uniqueError: PropTypes.bool,
-    forceJoin: PropTypes.func
+    uniqueError: PropTypes.bool
 }

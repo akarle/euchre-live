@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
-import {Button, Grid, Row, Column} from 'carbon-components-react';
-import {Logout32, Redo32} from '@carbon/icons-react';
+import {Button, Grid, Row, Column, OverflowMenu, OverflowMenuItem} from 'carbon-components-react';
+import {Logout32, Redo32, Package32} from '@carbon/icons-react';
 import SeatPicker from './SeatPicker';
 import MainHand from './MainHand';
 import HiddenHand from './HiddenHand';
@@ -25,7 +25,6 @@ export default class CardTable extends React.Component {
         super(props);
         this.state = {
             playerNames: [],
-            myName: 'You',
             mySeat: -1,
             myCards: [],
             myHandInfo: 'mhi',
@@ -57,7 +56,7 @@ export default class CardTable extends React.Component {
             innerWinMsg: '',
             onlyAlone: false,
             noPick: false,
-            activeGameSpectator: false
+            amSpectator: false
         };
     };
 
@@ -66,7 +65,7 @@ export default class CardTable extends React.Component {
         client.onmessage = (event) => this.processResponse(event);
         const welcomeMsg = 'Welcome to the ' + tableName + ' table, ' + name + '!';
         if (firstMsg) {
-            this.processFirstMessage(firstMsg);
+            this.processPlayerChange(firstMsg);
         }
         this.setState({
             bannerMsg: welcomeMsg
@@ -76,42 +75,81 @@ export default class CardTable extends React.Component {
     componentDidUpdate (prevProps) {
         const {firstMsg} = this.props;
         if (firstMsg && !prevProps.firstMsg) {
-            this.processFirstMessage(firstMsg);
+            this.processPlayerChange(firstMsg);
         }
     }
 
     processResponse = (event) => {
+        const { playerNames} = this.state;
         let msg = JSON.parse(event.data);
         if ('pong' != msg.msg_type) {
             console.log(msg);
         }
         if ('game_state' == msg.msg_type) {
-            if (msg.game) {
-                switch (msg.game.phase) {
-                    case 'lobby':
-                        this.processLobby(msg);
-                        break;
-                    case 'vote':
-                        this.processVote(msg);
-                        break;
-                    case 'dealer_swap':
-                        this.processSwap(msg);
-                        break;
-                    case 'play':
-                        this.processPlay(msg);
-                        break;
-                    case 'pause':
-                        this.processPause(msg);
-                        break;
-                    case 'end':
-                        this.processEnd(msg);
-                        break;
-                    default:
-                        break;
+            if (msg.game.phase != 'lobby') {
+                if (!_.isEqual(playerNames, msg.game.players)){
+                    this.processPlayerChange(msg);
+                } else {
+                    this.processResponseSwitch(msg);
                 }
+            } else {
+                this.processLobby(msg);
             }
         };
     };
+
+    processResponseSwitch = msg => {
+        switch (msg.game.phase) {
+            case 'lobby':
+                this.processLobby(msg);
+                break;
+            case 'vote':
+                this.processVote(msg);
+                break;
+            case 'dealer_swap':
+                this.processSwap(msg);
+                break;
+            case 'play':
+                this.processPlay(msg);
+                break;
+            case 'pause':
+                this.processPause(msg);
+                break;
+            case 'end':
+                this.processEnd(msg);
+                break;
+            default:
+                break;
+        }
+    }
+
+    processPlayerChange = msg => {
+        const {amSpectator} = this.state;
+        console.log('Player update!!');
+        const newSpectator = msg.is_spectator > 0;
+        if (!amSpectator && !newSpectator) {
+            // I'm already a player, update the name set and continue
+            this.setState({
+                playerNames: msg.game.players
+            }, () => { 
+                this.processResponseSwitch(msg);
+            });
+        } else if (!amSpectator && newSpectator) {
+            // I was playing and just stood up - reset me to spectator mode
+            this.processFirstMessage(msg);
+        } else if (amSpectator && !newSpectator) {
+            // I was spectator and just took a seat
+            this.processFirstMessage(msg);
+        } else {
+            // was and still am spectator - update names and continue
+            this.setState({
+                playerNames: msg.game.players,
+            }, () => { 
+                this.processResponseSwitch(msg);
+            });
+        }
+
+    }
 
     processFirstMessage = msg => {
         console.log('processFirstMessage, msg:\n', msg);
@@ -179,28 +217,19 @@ export default class CardTable extends React.Component {
     };
 
     initMySeat = msg => {
+        const {name} = this.props;
+        const newSpec = msg.is_spectator >  0;
         if (msg.game.players) {
             const plAr = msg.game.players;
-            let mySeat = plAr.findIndex( x => x == this.props.name );
-            // if mySeat=-1 & msg.is_spec
-            //  set activeGameSpectator ags true, set mySeat=3
-            //  write my-name as playerNames[3] for bottom display
-            let myName = 'You';
-            let ags = false;
-            if (mySeat == -1){
-                const emptySeat = plAr.findIndex( x => x == 'Empty');
-                if (emptySeat == -1) {
-                    ags = true;
-                    myName = plAr[3];
-                    mySeat = 3;
-                }
-            }
-            console.log('calc ags = ', ags);
+            let mySeat = plAr.findIndex( x => x == name );
+            console.log('initMySeat.mySeat=', mySeat);
+            if (newSpec && msg.game.phase != 'lobby'){
+                mySeat = 3;
+            };
             this.setState({
                 playerNames: plAr,
                 mySeat: mySeat,
-                myName: myName,
-                activeGameSpectator: ags
+                amSpectator: newSpec
             });
         };
     }
@@ -321,13 +350,14 @@ export default class CardTable extends React.Component {
     }
 
     processEnd = msg => {
-        const {playerNames, myName, leftSeat, partnerSeat, rightSeat, activeGameSpectator} = this.state;
+        const {playerNames, leftSeat, partnerSeat, rightSeat, amSpectator} = this.state;
         // arrangeScore[0] us, [1] them
         const finalScore = this.arrangeScore(msg.game.score);
+        const myName =  amSpectator ? playerNames[3] : 'You';
         const winMsg = finalScore[0] > finalScore[1] ?
             myName + ' and ' + playerNames[partnerSeat] + ' win the game!!' :
             playerNames[leftSeat] + ' and ' + playerNames[rightSeat] + ' win this one...';
-        const innerWin = activeGameSpectator ? 'Game Over...' :
+        const innerWin = amSpectator ? 'Game Over...' :
           finalScore[0] > finalScore[1] ? 'You Win!!' : 'You lost...';
         this.setState({
             phase: 'end',
@@ -458,6 +488,10 @@ export default class CardTable extends React.Component {
         // console.log('start game, dealer = ', startDealer);
     };
 
+    sendExit = () => {
+        this.props.exitTable();
+    };
+
     sendVote = (voteObject) => {
         const voteString = JSON.stringify(voteObject);
         // console.log('sendVote:', voteString);
@@ -485,9 +519,9 @@ export default class CardTable extends React.Component {
     }
 
     genGameOver = () => {
-        const {innerWinMsg, activeGameSpectator} = this.state;
+        const {innerWinMsg, amSpectator} = this.state;
         let retVal = [];
-        const instMsg = activeGameSpectator ? 'You can take a seat if one becomes empty, or you can return to the lobby...'
+        const instMsg = amSpectator ? 'You can take a seat if one becomes empty, or you can return to the lobby...'
         : 'You can play again at this table, or return to the lobby to change your table or player name...';
         retVal.push(
         <div className="gover__outer">
@@ -499,10 +533,10 @@ export default class CardTable extends React.Component {
                 <Button
                     className="exit2__button"
                     kind="secondary"
-                    onClick={()=>this.props.chooseTable('')}
+                    onClick={this.sendExit}
                     renderIcon={Logout32}
                     >Exit to Lobby</Button> 
-                {!activeGameSpectator && ( 
+                {!amSpectator && ( 
                     <Button
                     className="repeat__button"
                     kind="primary"
@@ -579,22 +613,51 @@ export default class CardTable extends React.Component {
         return retVal;
     }
 
+    genNameDisplay = seatNum => {
+        let retVal = '';
+        const { playerNames, mySeat, myHandInfo, amSpectator } = this.state;
+        let seatName = playerNames[seatNum];
+        if (seatNum == mySeat) {
+            seatName = amSpectator ? seatName : 'You';
+            if (seatName != 'Empty'){
+                seatName += ': ' + myHandInfo;
+            }
+        }
+        if (seatName != 'Empty') {
+            retVal = (<div>{seatName}</div>);
+        } else {
+            retVal = (
+            <div>Empty
+                {amSpectator && (
+                    <Button
+                    className="sit__button"
+                    kind="ghost"
+                    onClick={()=>{this.sendSit(seatNum)}}
+                    renderIcon={Package32}>Choose seat</Button>
+                )}
+            </div>);
+        }
+        return retVal;
+    }
+
     render () {
-        const { playerNames, mySeat, myName, phase, myCards, myHandInfo, myTurnInfo, activeGameSpectator,
-            partnerName, partnerHandInfo, partnerTurnInfo, partnerSeat, leftName, leftTurnInfo, leftHandInfo, leftSeat,
-            rightName, rightHandInfo, rightTurnInfo, rightSeat, trumpPlace, trumpNom, turnSeat,
+        const { playerNames, mySeat, phase, myCards, myTurnInfo, amSpectator,
+            partnerHandInfo, partnerTurnInfo, partnerSeat, leftTurnInfo, leftHandInfo, leftSeat,
+            rightHandInfo, rightTurnInfo, rightSeat, trumpPlace, trumpNom, turnSeat,
             dealSeat, trump, handLengths, score, trickWinner, bannerMsg, noPick, onlyAlone } = this.state;
         const showSeatPicker = phase == 'lobby';
         const showGameOver = phase == 'end';
         const showTrump = (phase == 'vote') || (phase == 'vote2') || (phase == 'swap');
         const showTrumpPicker = showTrump && (turnSeat == mySeat);
         const showSwap = (phase == 'swap') && (dealSeat == mySeat);
-        const showInfo = !showSeatPicker && !showTrumpPicker && !showSwap;
+        const showBottomInfo = !showSeatPicker && (amSpectator || (!showTrumpPicker && !showSwap));
         const tcp = "trump__holder " + trumpPlace;
         const trumpImage = (phase != 'vote2') ? 'cards/' + trumpNom + '.svg' : 'cards/1B.svg';
         const trumpMsg = phase == 'play' ? suit[trump] + ' are trump' : '';
         const trickDisplay = (phase == 'play' || phase == 'pause') ? this.genTrick() : [];
         const gameOverDisplay = (phase == 'end') ? this.genGameOver() : [];
+        const usLabel = amSpectator ? playerNames[1] + ' & ' + playerNames[3] + ': ' : 'Us: ';
+        const themLabel = amSpectator ? playerNames[0] + ' & ' + playerNames[2] + ': ' : 'Them: ';
         return (
             <div id="table" className="table__main">
                 <Grid>
@@ -608,7 +671,7 @@ export default class CardTable extends React.Component {
                                 <Button
                                     className="leave__button"
                                     kind="ghost"
-                                    onClick={()=>this.props.chooseTable('')}
+                                    onClick={this.sendExit}
                                     renderIcon={Logout32}>Exit</Button>
                             </div>
                         </Column>
@@ -616,11 +679,26 @@ export default class CardTable extends React.Component {
                     )}
                     <Row className="table__top">
                         <Column className="tt__left" sm={1}>
+                            {!showSeatPicker && (
+                                    <div className="menu__holder">
+                                        <OverflowMenu>
+                                            <OverflowMenuItem
+                                                itemText="Stand"
+                                                disabled={amSpectator}
+                                                onClick={this.sendStand}
+                                            />
+                                            <OverflowMenuItem
+                                                itemText="Exit to Lobby"
+                                                onClick={this.sendExit}
+                                            />
+                                        </OverflowMenu>
+                                    </div>
+                                )}
                         </Column>
                         <Column className="tt__center" sm={2}>
                             {!showSeatPicker && (
                             <div className="partner__stack">
-                                <div className="player__name">{partnerName}</div>
+                                <div className="player__name">{this.genNameDisplay(partnerSeat)}</div>
                                 <div className="partner__info">
                                     <div className="play__hinfo">{partnerHandInfo}</div>
                                     <div className="play__tinfo">{partnerTurnInfo}</div>
@@ -632,8 +710,8 @@ export default class CardTable extends React.Component {
                         <Column className="tt__right" sm={1}>
                             {(phase != 'lobby') && (
                             <div className="score__holder">
-                                <div className="us__score">Us: {score[0]}</div>
-                                <div className="them__score">Them: {score[1]}</div>
+                                <div className="us__score">{usLabel}{score[0]}</div>
+                                <div className="them__score">{themLabel}{score[1]}</div>
                                 <div className="trick__win">{trickWinner}</div>
                             </div>)}
                         </Column>
@@ -642,7 +720,7 @@ export default class CardTable extends React.Component {
                         <Column className="tm__left" sm={1}>
                             {!showSeatPicker && (
                             <div className="vert__stack">
-                                <div className="player__name">{leftName}</div>
+                                <div className="player__name">{this.genNameDisplay(leftSeat)}</div>
                                 <div className="play__hinfo">{leftHandInfo}</div>
                                 <div className="play__tinfo">{leftTurnInfo}</div>
                                 <HiddenHand
@@ -656,7 +734,7 @@ export default class CardTable extends React.Component {
                                 handleSit={this.sendSit}
                                 handleStand={this.sendStand}
                                 mySeat={mySeat}
-                                amSpectator={activeGameSpectator}
+                                amSpectator={amSpectator}
                                 handleStart={this.sendStart}
                             />)}
                             { showTrump && (
@@ -678,7 +756,7 @@ export default class CardTable extends React.Component {
                         <Column className="tm__right" sm={1}>
                             {!showSeatPicker && (
                             <div className="vert__stack">
-                                <div className="player__name">{rightName}</div>
+                                <div className="player__name">{this.genNameDisplay(rightSeat)}</div>
                                 <div className="play__hinfo">{rightHandInfo}</div>
                                 <div className="play__tinfo">{rightTurnInfo}</div>
                                 <HiddenHand
@@ -688,14 +766,14 @@ export default class CardTable extends React.Component {
                     </Row>
                     <Row className="table__bot">
                         <Column className="tb__left" sm={1}>
-                            {(showInfo || activeGameSpectator) && (
+                            {showBottomInfo && (
                                 <div className="my__stack">
-                                    <div className="my__hinfo">{myName}: {myHandInfo}</div>
+                                    <div className="my__hinfo">{this.genNameDisplay(mySeat)}</div>
                                     <div className="my__tinfo">{myTurnInfo}</div>
                                     <div className="my__tinfo">{trumpMsg}</div>
                                 </div>
                             )}
-                            {showTrumpPicker && !activeGameSpectator && (
+                            {showTrumpPicker && !amSpectator && (
                                 <TrumpPicker
                                     trumpCard={trumpNom}
                                     phaseTwo={phase == 'vote2'}
@@ -704,20 +782,20 @@ export default class CardTable extends React.Component {
                                     noPick={noPick}
                                     handleVote={this.sendVote} />
                             )}
-                            {showSwap && !activeGameSpectator && (
+                            {showSwap && !amSpectator && (
                                 <div className="my__stack">
                                     <div className="my_tinfo">Click a card to discard:</div>
                                 </div>
                             )}
                         </Column>
                         <Column className="tb__center" sm={3}>
-                            {!showSeatPicker && !activeGameSpectator && (
+                            {!showSeatPicker && !amSpectator && (
                                 <MainHand
                                     cards={myCards}
                                     cardClick={this.sendCard}
                                 />
                             )}
-                            {!showSeatPicker && activeGameSpectator && (
+                            {!showSeatPicker && amSpectator && (
                                 <HiddenHand
                                 numCards={handLengths[mySeat]} />
                             )}
@@ -732,7 +810,7 @@ export default class CardTable extends React.Component {
 }
 
 CardTable.propTypes = {
-    chooseTable: PropTypes.func,
+    exitTable: PropTypes.func,
     name: PropTypes.string,
     tableName: PropTypes.string,
     firstMsg: PropTypes.object,

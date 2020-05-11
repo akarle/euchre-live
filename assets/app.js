@@ -87,6 +87,18 @@ class App extends React.Component {
             }
         }
     }
+    
+    exitTable = () => {
+        client.onmessage = (event) => this.processResponse(event);
+        this.setState({
+            tableName: '',
+            showTable: false
+        }, () => {
+            client.send(JSON.stringify({
+                action:'leave_table'
+            }));
+        });
+    }
 
     chooseTable = tableName => {
         if (!tableName || tableName == ''){
@@ -109,18 +121,6 @@ class App extends React.Component {
         });
     }
 
-    forceJoin = () => {
-        // console.log('send force rejoin');
-        // should only be calling this on unique error and user wants force rejoin
-        //  so all other state should be correct
-        client.send(JSON.stringify({
-            action:'join_table',
-            player_name: this.state.playerName,
-            table: this.state.tableName,
-            force: true
-        }));    
-    }
-
     setFakeGame = (initialName, initialTable) => {
         client.send(JSON.stringify({ action:'join_table', player_name: initialName, table: initialTable }));
         fc1.send(JSON.stringify({ action:'join_table', player_name: 'Betty', table: initialTable }));
@@ -141,12 +141,11 @@ class App extends React.Component {
                         chooseTable={this.chooseTable}
                         name={playerName}
                         uniqueError={uniqueError}
-                        forceJoin={this.forceJoin}
                     />
                 )}
                 {showTable && (
                     <CardTable
-                        chooseTable={this.chooseTable}
+                        exitTable={this.exitTable}
                         name={playerName}
                         tableName={tableName}
                         firstMsg={firstMsg}

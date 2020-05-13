@@ -3,3 +3,4 @@ public/asset
 tags
 /build/
 /build.*/
+.public.ts

@@ -15,12 +15,3 @@ export MOJO_WEBPACK_BUILD=1
 
 # Run an effectively no-op (non daemonizing) command to kick it off
 ./gloat.pl routes
-
-# Make the build directory
-[ -d "build" ] && mv build build.`date +%s`
-mkdir build
-cp -a public lib gloat.pl build
-
-echo "---------------------------------------------------------------"
-echo "                        Build Success!"
-echo "---------------------------------------------------------------"

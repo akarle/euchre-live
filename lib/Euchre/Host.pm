@@ -5,6 +5,8 @@ use warnings;
 
 package Euchre::Host;
 
+use Mojo::Log;
+
 use Euchre::Errors;
 use Euchre::Dealer;
 use Euchre::Player;
@@ -23,6 +25,8 @@ our @EXPORT = qw(
 our %PLAYERS;
 our %DEALERS;
 our %PINDEX; # Player id => Dealer id
+
+our $LOG = Mojo::Log->new;
 
 # Stats
 our $TOTAL_PLAYERS = 0;
@@ -53,7 +57,7 @@ sub gloaters_never_win {
     my $p = $PLAYERS{$id};
     leave_table($p);
 
-    printf "Player %s went inactive\n", $p->name;
+    $LOG->info("Player " . $p->name . " went inactive");
     delete $PLAYERS{$id};
 }
 
@@ -137,12 +141,14 @@ sub join_table {
             (exists $msg->{password} ? (password => $msg->{password}) : ()),
         );
         $TOTAL_TABLES++;
+        $LOG->info("Player " . $p->name . " created table $tid");
     }
 
     my $d = $DEALERS{$tid};
     if (my $errno = $d->add_player($p, $msg->{password})) {
         $p->error($errno);
     } else {
+        $LOG->info("Player " . $p->name . " joined table $tid");
         $PINDEX{$p->{id}} = $tid;
     }
 }
@@ -160,8 +166,9 @@ sub leave_table {
         # Success! Was removed properly, delete PINDEX
         # Also delete the Dealer itself if that was the last player
         # to leave and the game looks finished
+        $LOG->info("Player " . $p->name . " left table " . $d->id);
         if (!$d->is_active && $d->game->phase eq 'end') {
-            printf "Deleting Table %s that appears to have finished\n", $d->id;
+            $LOG->info("Deleting Table " . $d->id . " that appears to have finished");
             delete $DEALERS{$PINDEX{$p->{id}}};
         }
         delete $PINDEX{$p->{id}};
@@ -224,7 +231,7 @@ sub require_keys {
 sub prune_tables {
     for my $k (keys %DEALERS) {
         if (!$DEALERS{$k}->is_active) {
-            print "Deleting inactive table " . $DEALERS{$k}->id . "\n";
+            $LOG->info("Deleting inactive table " . $DEALERS{$k}->id);
             delete $DEALERS{$k};
         }
     }

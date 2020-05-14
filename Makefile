@@ -19,11 +19,12 @@ test:
 # We make this timestamp file the dependency for build to
 # ensure we don't do it too often...
 .public.ts: $(PUBLIC_FILES)
-	./build.sh
+	env MOJO_WEBPACK_VERBOSE=1 MOJO_WEBPACK_BUILD=1 ./gloat.pl routes
 	touch .public.ts
 
 # Only rebuild if any of public/ or the Perl stuff has changed
 build: .public.ts $(LIB_FILES) gloat.pl
+	rm -rf build
 	mkdir -p build
 	cp -a gloat.pl public lib build
 	@echo ">>> Build Success! <<<"

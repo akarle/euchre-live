@@ -1,7 +1,7 @@
 # Rebuilding the webpack for a server-only release is a painful
 # few minutes on my poor old thinkpad. We can do better
-PUBLIC_FILES := $(shell find public -type f)
-LIB_FILES := $(shell find lib -type f)
+PUBLIC_FILES := $(shell find public)
+LIB_FILES := $(shell find lib)
 
 .PHONY: all
 all: test tags
@@ -36,4 +36,4 @@ release: build test
 
 .PHONY: clean
 clean:
-	rm -rf build
+	rm -rf build public/asset

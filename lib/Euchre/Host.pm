@@ -18,6 +18,7 @@ our @EXPORT = qw(
     register_player
     gloaters_never_win
     prune_tables
+    list_tables
     stats
 );
 
@@ -74,7 +75,6 @@ sub handle_msg {
         ping         => \&pong,
         join_table   => \&join_table,
         leave_table  => \&leave_table,
-        list_tables  => \&list_tables,
     );
 
     my $p = $PLAYERS{$cid};
@@ -176,13 +176,18 @@ sub leave_table {
 }
 
 sub list_tables {
-    my ($p) = @_;
-
-    # TODO: send more...
-    $p->send({
-            msg_type => 'list',
-            tables => [map { $_->name } values %DEALERS],
-        });
+    my $json = { games => [] };
+    for my $k (keys %DEALERS) {
+        my $d = $DEALERS{$k};
+        push @{$json->{games}}, {
+            name => $k,
+            phase => $d->game->phase,
+            has_password => $d->password ? 1 : 0,
+            players => $d->player_names,
+            spectators => [map { $_->name } @{$d->spectators}],
+        };
+    }
+    return $json;
 }
 
 

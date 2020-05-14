@@ -18,6 +18,11 @@ get '/' => sub {
     $c->reply->static('index.html');
 };
 
+get '/tables' => sub {
+    my $c = shift;
+    $c->render(json => list_tables);
+};
+
 get '/debug' => sub {
     my $c = shift;
     $c->reply->static('debug.html');

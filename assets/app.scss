@@ -37,8 +37,13 @@
 
 .table__main {
     margin-top: 2rem;
-    min-width: 850px;
+    min-width: 950px;
     min-height: 650px;
+}
+
+.og {
+    padding-left: 0;
+    padding-right: 0;
 }
 
 .score__holder{
@@ -120,11 +125,28 @@
 .my__tinfo {
     font-size: 1.3rem;
 }
+.mh__card__wrapper {
+    overflow: hidden;
+}
+  
+.mh__card__wrapper:last-child, .mh__card__wrapper:hover {
+    overflow: visible;
+}
 .mh__card {
-    width: 100px;
+    width: 9vw;
+    min-width: 80px;
 }
 .mh__card__row {
     display: flex;
+    align-content: center;
+    max-width: 35vw;
+}
+.my__hand {
+    // background-color: cadetblue;
+
+}
+.chat__tile {
+    width: 100%;
 }
 .hid__card {
     width: 30px;
@@ -145,6 +167,17 @@
         transform: rotate(90deg);
     }
 }
+.right__stack {
+    margin-left: 1.5vw;
+}
+.og__left, .inner__left {
+    padding-right: 0;
+    padding-left: 0;
+}
+.og__right, inner__right {
+    padding-left: 0;
+}
+
 .tm__left {
     // background-color: rgb(217, 249, 255);
     .vert__stack {
@@ -157,12 +190,13 @@
     text-align: center;
 }
 
-// .tm__right {
-//     background-color: rgb(217, 249, 255);
-// }
-// .tb__center {
-//     background-color: rgb(217, 249, 255);
-// }
+.tm__right {
+    height: 35vh;
+    // background-color: rgb(217, 249, 255);
+}
+.tb__center {
+    // background-color: rgb(217, 249, 255);
+}
 .trick__card {
     width: 80px;
 }
@@ -228,6 +262,7 @@
 
 .table__header {
     height: 10vh;
+    margin-left: 2rem;
 }
 .table__top {
     height: 20vh;
@@ -238,13 +273,19 @@
 .table__bot {
     height: 20vh;
 }
+.tt__right {
+    height: 20vh;
+    justify-content: flex-end;
+    // background-color: lightsalmon;
+}
+.tb__right {
+    height: 35vh;
+    // background-color: lightsalmon;
+}
 
 
 // .tb__left {
 //     background-color: slategray;
-// }
-// .tb__right {
-//     background-color: lightsalmon;
 // }
 // .hd__left {
 //     background-color: rosybrown;
@@ -254,9 +295,6 @@
 // }
 // .tt__left {
 //     background-color: slategray;
-// }
-// .tt__right {
-//     background-color: lightsalmon;
 // }
 // .tm__center {
 //     background-color: lightpink;

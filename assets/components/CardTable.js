@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
-import {Button, Grid, Row, Column, OverflowMenu, OverflowMenuItem} from 'carbon-components-react';
+import {Button, Grid, Row, Column, OverflowMenu, OverflowMenuItem, Tile} from 'carbon-components-react';
 import {Logout32, Redo32, Package32} from '@carbon/icons-react';
 import SeatPicker from './SeatPicker';
 import MainHand from './MainHand';
@@ -660,25 +660,17 @@ export default class CardTable extends React.Component {
         const themLabel = amSpectator ? playerNames[0] + ' & ' + playerNames[2] + ': ' : 'Them: ';
         return (
             <div id="table" className="table__main">
-                <Grid>
+                <Grid className="og">
+                    <Row className="og__row">
+                        <Column className="og__left" md={5}>
+                        <Grid className="inner__left">
                     {(showSeatPicker || showGameOver) && (
                      <Row className="table__header">
-                        <Column className="hd__left" sm={3}>
-                            <h3>{bannerMsg}</h3>
-                        </Column>
-                        <Column className="hd__right" sm={1}>
-                            <div className="exit__row">
-                                <Button
-                                    className="leave__button"
-                                    kind="ghost"
-                                    onClick={this.sendExit}
-                                    renderIcon={Logout32}>Exit</Button>
-                            </div>
-                        </Column>
+                         <h3>{bannerMsg}</h3>
                     </Row>
                     )}
                     <Row className="table__top">
-                        <Column className="tt__left" sm={1}>
+                        <Column className="tt__left" md={3}>
                             {!showSeatPicker && (
                                     <div className="menu__holder">
                                         <OverflowMenu>
@@ -695,7 +687,7 @@ export default class CardTable extends React.Component {
                                     </div>
                                 )}
                         </Column>
-                        <Column className="tt__center" sm={2}>
+                        <Column className="tt__center" md={5}>
                             {!showSeatPicker && (
                             <div className="partner__stack">
                                 <div className="player__name">{this.genNameDisplay(partnerSeat)}</div>
@@ -707,17 +699,9 @@ export default class CardTable extends React.Component {
                                     numCards={handLengths[partnerSeat]} />
                             </div>)}
                         </Column>
-                        <Column className="tt__right" sm={1}>
-                            {(phase != 'lobby') && (
-                            <div className="score__holder">
-                                <div className="us__score">{usLabel}{score[0]}</div>
-                                <div className="them__score">{themLabel}{score[1]}</div>
-                                <div className="trick__win">{trickWinner}</div>
-                            </div>)}
-                        </Column>
                     </Row>
                     <Row className="table__mid">
-                        <Column className="tm__left" sm={1}>
+                        <Column className="tm__left" md={3}>
                             {!showSeatPicker && (
                             <div className="vert__stack">
                                 <div className="player__name">{this.genNameDisplay(leftSeat)}</div>
@@ -727,7 +711,7 @@ export default class CardTable extends React.Component {
                                     numCards={handLengths[leftSeat]} />
                             </div>)}
                         </Column>
-                        <Column className="tm__center" sm={2}>
+                        <Column className="tm__center" md={5}>
                             {showSeatPicker && (
                             <SeatPicker
                                 names={playerNames}
@@ -753,19 +737,9 @@ export default class CardTable extends React.Component {
                                 </div>
                             )}
                         </Column>
-                        <Column className="tm__right" sm={1}>
-                            {!showSeatPicker && (
-                            <div className="vert__stack">
-                                <div className="player__name">{this.genNameDisplay(rightSeat)}</div>
-                                <div className="play__hinfo">{rightHandInfo}</div>
-                                <div className="play__tinfo">{rightTurnInfo}</div>
-                                <HiddenHand
-                                    numCards={handLengths[rightSeat]} />
-                            </div>)}
-                        </Column>
                     </Row>
                     <Row className="table__bot">
-                        <Column className="tb__left" sm={1}>
+                        <Column className="tb__left" md={3}>
                             {showBottomInfo && (
                                 <div className="my__stack">
                                     <div className="my__hinfo">{this.genNameDisplay(mySeat)}</div>
@@ -788,7 +762,7 @@ export default class CardTable extends React.Component {
                                 </div>
                             )}
                         </Column>
-                        <Column className="tb__center" sm={3}>
+                        <Column className="tb__center" md={5}>
                             {!showSeatPicker && !amSpectator && (
                                 <MainHand
                                     cards={myCards}
@@ -802,9 +776,44 @@ export default class CardTable extends React.Component {
                         </Column>
                     </Row>
                 </Grid>
-                
-                
-            </div>
+                </Column>
+                <Column className="og__right" md={3}>
+                <Grid className="inner_right">
+                <Row className="tt__right" >
+                    {phase == 'lobby' && (
+                        <div className="exit__row">
+                            <Button
+                                className="leave__button"
+                                kind="ghost"
+                                onClick={this.sendExit}
+                                renderIcon={Logout32}>Exit</Button>
+                        </div>
+                    )}
+                    {(phase != 'lobby') && (
+                    <div className="score__holder">
+                        <div className="us__score">{usLabel}{score[0]}</div>
+                        <div className="them__score">{themLabel}{score[1]}</div>
+                        <div className="trick__win">{trickWinner}</div>
+                    </div>)}
+                </Row>
+                <Row className="tm__right">
+                    {!showSeatPicker && (
+                    <div className="vert__stack right__stack">
+                        <div className="player__name">{this.genNameDisplay(rightSeat)}</div>
+                        <div className="play__hinfo">{rightHandInfo}</div>
+                        <div className="play__tinfo">{rightTurnInfo}</div>
+                        <HiddenHand
+                            numCards={handLengths[rightSeat]} />
+                    </div>)}
+                </Row>
+                <Row className="tb__right">
+                    <Tile className="chat__tile">Coming Soon! future chat area here</Tile>
+                </Row>
+                </Grid>    
+                </Column>
+            </Row>
+        </Grid>
+        </div>
         );
     };
 }

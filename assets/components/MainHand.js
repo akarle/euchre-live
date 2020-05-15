@@ -9,15 +9,18 @@ class MainHand extends React.Component {
         cards.map((card, index) => {
             const cardSrc = 'cards/' + card + '.svg';
             buttons.push(
-            <div
-                key={index}
-                className="mh__card__div">
-                <Link
-                    className="mh__card__link"
-                    href="javascript:void(0)"
-                    onClick={()=> this.props.cardClick(index)}>
-                    <img className="mh__card" src={cardSrc} />
-                </Link>
+            <div key={index+'cw'}
+                className="mh__card__wrapper">
+                <div
+                    key={index}
+                    className="mh__card__div">
+                    <Link
+                        className="mh__card__link"
+                        href="javascript:void(0)"
+                        onClick={()=> this.props.cardClick(index)}>
+                        <img className="mh__card" src={cardSrc} />
+                    </Link>
+                </div>
             </div>
             )
         });

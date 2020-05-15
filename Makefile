@@ -1,5 +1,6 @@
 # Rebuilding the webpack for a server-only release is a painful
 # few minutes on my poor old thinkpad. We can do better
+JS_FILES := $(shell find assets)
 PUBLIC_FILES := $(shell find public)
 LIB_FILES := $(shell find lib)
 
@@ -18,7 +19,7 @@ test:
 # If no public files have changed, don't rebuild the webpack!
 # We make this timestamp file the dependency for build to
 # ensure we don't do it too often...
-.public.ts: $(PUBLIC_FILES)
+.public.ts: $(JS_FILES) $(PUBLIC_FILES)
 	env MOJO_WEBPACK_VERBOSE=1 MOJO_WEBPACK_BUILD=1 ./gloat.pl routes
 	touch .public.ts
 

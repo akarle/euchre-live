@@ -208,6 +208,12 @@ sub stats {
     }
     $msg .= "-----------------------------------------------------------\n";
     $msg .= "$num_tables\tTables\n";
+    $msg .= "\n\nPlayers: Start Time\tTable tname\n";
+    $msg .= "===========================================================\n";
+    for my $p (values %PLAYERS) {
+        $msg .= localtime($p->start_time) . "\t" . $p->name . "\n";
+    }
+    $msg .= "-----------------------------------------------------------\n";
     $msg .= "$num_players\tPlayers\n";
 
     $msg .= "\n\nServer Stats\n";

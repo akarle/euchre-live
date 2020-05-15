@@ -49,4 +49,9 @@ sub stand_up {
     return SUCCESS;
 }
 
+sub is_active {
+    my ($self) = @_;
+    return !$self->ws->is_finished;
+}
+
 1;

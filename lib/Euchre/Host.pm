@@ -18,6 +18,7 @@ our @EXPORT = qw(
     register_player
     gloaters_never_win
     prune_tables
+    prune_players
     list_tables
     stats
 );
@@ -56,7 +57,7 @@ sub gloaters_never_win {
 
     # TODO: cleanup stale tables
     my $p = $PLAYERS{$id};
-    leave_table($p);
+    try_leave_table($p);
 
     $LOG->info("Player " . $p->name . " went inactive");
     delete $PLAYERS{$id};
@@ -88,7 +89,7 @@ sub handle_msg {
         $dispatch{$msg->{action}}->($p, $msg);
     } else {
         require_table($p) or return;
-        my $d = $DEALERS{$PINDEX{$p->{id}}};
+        my $d = $DEALERS{$PINDEX{$p->id}};
         $d->handle_msg($cid, $msg);
     }
 }
@@ -99,7 +100,7 @@ sub handle_msg {
 sub require_table {
     my ($p) = @_;
 
-    my $at_table = exists $PINDEX{$p->{id}};
+    my $at_table = exists $PINDEX{$p->id};
     if (!$at_table) {
         $p->error(NOT_AT_TABLE);
     }
@@ -126,7 +127,7 @@ sub join_table {
     # leave_table in all cases, and we need to prevent one Player from having
     # multiple Tables for a whole lot of reasons (messages from multiple
     # tables, failure to detect and cleanup state, etc)
-    if (exists $PINDEX{$p->{id}}) {
+    if (exists $PINDEX{$p->id}) {
         leave_table($p);
     }
 
@@ -149,7 +150,7 @@ sub join_table {
         $p->error($errno);
     } else {
         $LOG->info("Player " . $p->name . " joined table $tid");
-        $PINDEX{$p->{id}} = $tid;
+        $PINDEX{$p->id} = $tid;
     }
 }
 
@@ -159,7 +160,7 @@ sub leave_table {
     require_table($p) or return;
 
     # Let the dealer do its own cleanup, then cleanup our state
-    my $d = $DEALERS{$PINDEX{$p->{id}}};
+    my $d = $DEALERS{$PINDEX{$p->id}};
     if (my $errno = $d->remove_player($p)) {
         $p->error($errno);
     } else {
@@ -169,9 +170,9 @@ sub leave_table {
         $LOG->info("Player " . $p->name . " left table " . $d->id);
         if (!$d->is_active && $d->game->phase eq 'end') {
             $LOG->info("Deleting Table " . $d->id . " that appears to have finished");
-            delete $DEALERS{$PINDEX{$p->{id}}};
+            delete $DEALERS{$PINDEX{$p->id}};
         }
-        delete $PINDEX{$p->{id}};
+        delete $PINDEX{$p->id};
     }
 }
 
@@ -242,9 +243,27 @@ sub require_keys {
 sub prune_tables {
     for my $k (keys %DEALERS) {
         if (!$DEALERS{$k}->is_active) {
-            $LOG->info("Deleting inactive table " . $DEALERS{$k}->id);
+            $LOG->info("Pruning inactive table " . $DEALERS{$k}->id);
             delete $DEALERS{$k};
         }
+    }
+}
+
+# Prune empty players, to be called in a IOLoop
+sub prune_players {
+    for my $p (keys %PLAYERS) {
+        if (!$PLAYERS{$p}->is_active) {
+            $LOG->info("Pruning inactive player " . $PLAYERS{$p}->name);
+            try_leave_table($PLAYERS{$p});
+            delete $PLAYERS{$p};
+        }
+    }
+}
+
+sub try_leave_table {
+    my ($p) = @_;
+    if (exists $PINDEX{$p->id}) {
+        leave_table($p);
     }
 }
 

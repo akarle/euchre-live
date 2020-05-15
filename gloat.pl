@@ -53,6 +53,9 @@ websocket '/play' => sub {
 };
 
 my $cleanup_time = $ENV{DEBUG} ? 1 : 300;
-Mojo::IOLoop->recurring($cleanup_time => \&prune_tables);
+Mojo::IOLoop->recurring($cleanup_time => sub {
+        prune_tables();
+        prune_players();
+    });
 
 app->start;

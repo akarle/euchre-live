@@ -176,10 +176,10 @@ sub leave_table {
 }
 
 sub list_tables {
-    my $json = { games => [] };
+    my @tables;
     for my $k (keys %DEALERS) {
         my $d = $DEALERS{$k};
-        push @{$json->{games}}, {
+        push @tables, {
             name => $k,
             phase => $d->game->phase,
             has_password => $d->password ? 1 : 0,
@@ -187,7 +187,7 @@ sub list_tables {
             spectators => [map { $_->name } @{$d->spectators}],
         };
     }
-    return $json;
+    return \@tables;
 }
 
 

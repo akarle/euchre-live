@@ -20,7 +20,7 @@ get '/' => sub {
 
 get '/tables' => sub {
     my $c = shift;
-    $c->render(json => list_tables);
+    $c->render(json => { tables => list_tables });
 };
 
 get '/debug' => sub {

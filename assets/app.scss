@@ -36,9 +36,12 @@
 }
 
 .table__main {
-    margin-top: 2rem;
+    // margin-top: 2rem;
     min-width: 950px;
     min-height: 650px;
+}
+.banner {
+    padding-top: 1rem;
 }
 
 .og {
@@ -52,6 +55,7 @@
     display: flex;
     flex-direction: column;
     align-items: flex-end;
+    padding-top: 1rem;
 }
 
 .exit__row {
@@ -61,6 +65,10 @@
 }
 .leave__button {
     font-size: 1.3rem;
+}
+.menu__holder {
+    padding-top: 1rem;
+    padding-left: 2rem;
 }
 .seat__picker {
     height: 46vh;
@@ -110,6 +118,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding-top: 1rem;
 }
 .partner__info {
     width: 100%;
@@ -145,8 +154,27 @@
     // background-color: cadetblue;
 
 }
-.chat__tile {
+.chat__panel {
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid;
+}
+.chat__holder {
+    flex: auto;
+    max-height: 207px;
+}
+.chat__tile {
+    height: 100%;
+    overflow: auto;
+    background-color: whitesmoke;
+}
+.chat__input__row {
+    display: flex;
+}
+.chat__post {
+    padding-right: 0.3rem;
+    padding-left: 0.3rem;
 }
 .hid__card {
     width: 30px;
@@ -272,6 +300,7 @@
 }
 .table__bot {
     height: 20vh;
+    margin-left: 0;
 }
 .tt__right {
     height: 20vh;
@@ -282,11 +311,10 @@
     height: 35vh;
     // background-color: lightsalmon;
 }
+.tb__left {
+    padding-left: 2rem;
+}
 
-
-// .tb__left {
-//     background-color: slategray;
-// }
 // .hd__left {
 //     background-color: rosybrown;
 // }

@@ -1,12 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
-import {Button, Grid, Row, Column, OverflowMenu, OverflowMenuItem, Tile} from 'carbon-components-react';
+import {Button, Grid, Row, Column, OverflowMenu, OverflowMenuItem} from 'carbon-components-react';
 import {Logout32, Redo32, Package32} from '@carbon/icons-react';
 import SeatPicker from './SeatPicker';
 import MainHand from './MainHand';
 import HiddenHand from './HiddenHand';
 import TrumpPicker from './TrumpPicker';
+import ChatPanel from './ChatPanel';
 
 const trumpPlacement = ['me', 'left', 'partner', 'right'];
 const suit = {
@@ -56,7 +57,8 @@ export default class CardTable extends React.Component {
             innerWinMsg: '',
             onlyAlone: false,
             noPick: false,
-            amSpectator: false
+            amSpectator: false,
+            latestPost: ''
         };
     };
 
@@ -95,8 +97,19 @@ export default class CardTable extends React.Component {
             } else {
                 this.processLobby(msg);
             }
-        };
+        } else if ('chat' == msg.msg_type) {
+            this.processChat(msg);
+        }
     };
+
+    processChat = msg => {
+        let post = msg.msg;
+        if (post && post != '') {
+            this.setState({
+                latestPost: post
+            });
+        }
+    }
 
     processResponseSwitch = msg => {
         switch (msg.game.phase) {
@@ -518,6 +531,16 @@ export default class CardTable extends React.Component {
         })); 
     }
 
+    sendChat = post => {
+        console.log(post);
+        if (post && post != ''){
+            this.props.client.send(JSON.stringify({
+                action: 'chat',
+                msg: post
+            }));
+        }
+    }
+
     genGameOver = () => {
         const {innerWinMsg, amSpectator} = this.state;
         let retVal = [];
@@ -644,7 +667,7 @@ export default class CardTable extends React.Component {
         const { playerNames, mySeat, phase, myCards, myTurnInfo, amSpectator,
             partnerHandInfo, partnerTurnInfo, partnerSeat, leftTurnInfo, leftHandInfo, leftSeat,
             rightHandInfo, rightTurnInfo, rightSeat, trumpPlace, trumpNom, turnSeat,
-            dealSeat, trump, handLengths, score, trickWinner, bannerMsg, noPick, onlyAlone } = this.state;
+            dealSeat, trump, handLengths, score, trickWinner, bannerMsg, noPick, onlyAlone, latestPost } = this.state;
         const showSeatPicker = phase == 'lobby';
         const showGameOver = phase == 'end';
         const showTrump = (phase == 'vote') || (phase == 'vote2') || (phase == 'swap');
@@ -666,7 +689,7 @@ export default class CardTable extends React.Component {
                         <Grid className="inner__left">
                     {(showSeatPicker || showGameOver) && (
                      <Row className="table__header">
-                         <h3>{bannerMsg}</h3>
+                         <h3 className="banner">{bannerMsg}</h3>
                     </Row>
                     )}
                     <Row className="table__top">
@@ -807,7 +830,9 @@ export default class CardTable extends React.Component {
                     </div>)}
                 </Row>
                 <Row className="tb__right">
-                    <Tile className="chat__tile">Coming Soon! future chat area here</Tile>
+                    <ChatPanel
+                        receivedChat={latestPost}
+                        sendChat={this.sendChat} />
                 </Row>
                 </Grid>    
                 </Column>

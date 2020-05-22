@@ -37,23 +37,16 @@ class ChatPanel extends React.Component {
             }, () => {
                 const element = document.getElementById(id);
                 if (element) {
-                    console.log(element);
                     setTimeout(()=>{
                         element.scrollIntoView();
                     }, 100);
                 }
             });
-            // document.getElementById("chat__tile").scrollIntoView(false);
-            // if (this.chatTile) {
-            //     console.log(this.chatTile);
-            //     this.chatTile.scrollIntoView(false);
-            // }
         }
     }
 
     handleChatIn = event => {
         const val = event.target.value;
-        console.log(val);
         this.setState({ post: val});
     }
 
@@ -72,6 +65,7 @@ class ChatPanel extends React.Component {
     render () {
         const { post, postArray } = this.state;
         return (
+            <div className="cp__outer">
             <div className="chat__panel">
                 <div className="chat__holder">
                     <div className="chat__tile">
@@ -99,6 +93,7 @@ class ChatPanel extends React.Component {
                         ref={(button) => {this.postButton = button;}}
                     />
                 </div>
+            </div>
             </div>
         )
     }

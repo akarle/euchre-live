@@ -237,7 +237,7 @@ sub chat {
 
     my $json = {
         msg_type => 'chat',
-        msg      => "$p->name: $msg->{msg}"
+        msg      => $p->name . ": $msg->{msg}"
     };
     $self->broadcast($json);
 }

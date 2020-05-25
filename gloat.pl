@@ -15,7 +15,7 @@ plugin Webpack => {process => [qw(js css sass)]};
 
 get '/' => sub {
     my $c = shift;
-    $c->reply->static('index.html');
+    $c->reply->static($ENV{PREPROD} ? 'preprod.html' : 'index.html');
 };
 
 get '/tables' => sub {

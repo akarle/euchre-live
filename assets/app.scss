@@ -159,7 +159,7 @@
 }
 .chat__panel {
     width: 100%;
-    height: 100%;
+    height: 241px;
     display: flex;
     flex-direction: column;
     border: 1px solid;
@@ -167,9 +167,10 @@
 .chat__holder {
     flex: auto;
     max-height: 207px;
+    overflow: hidden;
 }
 .chat__tile {
-    height: 100%;
+    height: 207px;
     overflow: auto;
     background-color: whitesmoke;
 }

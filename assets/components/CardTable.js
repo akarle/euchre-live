@@ -539,6 +539,16 @@ export default class CardTable extends React.Component {
                 msg: post
             }));
         }
+        // XX TODO remove this debug action when chat stable
+        if ('chat10' == post){
+            for (let i=0; i < 10; i++){
+                const msg='this is chat10 test-chat-' + i;
+                this.props.client.send(JSON.stringify({
+                    action: 'chat',
+                    msg: msg
+                }));
+            }
+        }
     }
 
     genGameOver = () => {

@@ -28,11 +28,11 @@ build: .public.ts $(LIB_FILES) gloat.pl
 	rm -rf build
 	mkdir -p build
 	cp -a gloat.pl public lib build
-	git show HEAD --pretty=full -s | sed 's/\(Author\|Commit\): \([^<]\+\).*/\1: \2<redacted>/' > build/public/version.txt
 	@echo ">>> Build Success! <<<"
 
 .PHONY: release
 release: build test
+	git show HEAD --pretty=full -s | sed 's/\(Author\|Commit\): \([^<]\+\).*/\1: \2<redacted>/' > build/public/version.txt
 	rsync -av --delete build/ www@euchre.live:/var/www/preprod-el/
 	ssh www@euchre.live env FORCE=$(FORCE) sh /var/www/restart.sh preprod
 

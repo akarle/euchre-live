@@ -33,7 +33,7 @@ build: .public.ts $(LIB_FILES) gloat.pl
 
 .PHONY: release
 release: build test
-	scp -r build/* www@euchre.live:/var/www/euchre-live
+	rsync -av --delete build/ www@euchre.live:/var/www/euchre-live/
 	ssh www@euchre.live env FORCE=$(FORCE) sh /var/www/deploy.sh
 
 .PHONY: clean

@@ -33,8 +33,8 @@ build: .public.ts $(LIB_FILES) gloat.pl
 
 .PHONY: release
 release: build test
-	rsync -av --delete build/ www@euchre.live:/var/www/euchre-live/
-	ssh www@euchre.live env FORCE=$(FORCE) sh /var/www/deploy.sh
+	rsync -av --delete build/ www@euchre.live:/var/www/preprod-el/
+	ssh www@euchre.live env FORCE=$(FORCE) sh /var/www/restart.sh preprod
 
 .PHONY: clean
 clean:

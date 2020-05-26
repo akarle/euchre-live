@@ -19,7 +19,7 @@ const config = {
     minimizer: []
   },
   output: {
-    filename: isDev ? '[name].development.js' : '[name].[chunkhash].js',
+    filename: isDev ? '[name].development.js' : '[name].production.js',
     path: outDir
   },
   plugins: [
@@ -58,7 +58,7 @@ if (process.env.WEBPACK_RULE_FOR_JS) {
 if (process.env.WEBPACK_RULE_FOR_CSS || process.env.WEBPACK_RULE_FOR_SASS) {
   var MiniCssExtractPlugin = require('mini-css-extract-plugin');
   config.plugins.push(new MiniCssExtractPlugin({
-    filename: isDev ? '[name].development.css' : '[name].[contenthash].css',
+    filename: isDev ? '[name].development.css' : '[name].production.css',
   }));
 
   const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');

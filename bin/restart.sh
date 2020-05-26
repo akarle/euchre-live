@@ -24,7 +24,9 @@ restart() {
     fi
 
     if [ $name = "preprod" ]; then
-        export PREPROD=1
+        export MOJO_MODE=development
+    else
+        export MOJO_MODE=production
     fi
 
     printf "%s" "Starting new server... "

@@ -15,7 +15,11 @@ plugin Webpack => {process => [qw(js css sass)]};
 
 get '/' => sub {
     my $c = shift;
-    $c->reply->static($ENV{PREPROD} ? 'preprod.html' : 'index.html');
+    if ($ENV{MOJO_MODE} && $ENV{MOJO_MODE} eq 'production') {
+        $c->reply->static('index.html');
+    } else {
+        $c->reply->static('preprod.html');
+    }
 };
 
 get '/tables' => sub {

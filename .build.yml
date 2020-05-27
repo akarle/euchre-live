@@ -26,3 +26,7 @@ tasks:
     - deploy: |
         cd euchre-live
         make release
+triggers:
+    - action: email
+      condition: always
+      to: alex@karle.co

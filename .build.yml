@@ -9,7 +9,7 @@ packages:
 sources:
     - https://git.sr.ht/~akarle/euchre-live
 secrets:
-    - 923b614a-772e-472a-b9d5-e742fc0697c0
+    - f39736f0-38a1-48d5-9c75-13529a1130cd
 environment:
     PERL5LIB: /home/build/perl5/lib/perl5
 shell: true

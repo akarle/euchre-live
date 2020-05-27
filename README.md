@@ -1,6 +1,8 @@
 euchre.live
 ===========
 
+[![builds.sr.ht status](https://builds.sr.ht/~akarle/euchre-live/.build.yml.svg)](https://builds.sr.ht/~akarle/euchre-live/.build.yml?)
+
 For my family <3
 
 About

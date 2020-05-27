@@ -8,7 +8,7 @@ die() {
 
 [ -e "gloat.pl" ] || die "Not in root of euchre-live"
 
-export MOJO_WEBPACK_VERBOSE=1
+# export MOJO_WEBPACK_VERBOSE=1
 export MOJO_WEBPACK_BUILD=1
 
 echo ">>> Building Development Version"

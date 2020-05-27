@@ -5,8 +5,11 @@ packages:
     - npm
     - rsync
     - cpanminus
+    - rsync
 sources:
     - https://git.sr.ht/~akarle/euchre-live
+secrets:
+    - 923b614a-772e-472a-b9d5-e742fc0697c0
 environment:
     PERL5LIB: /home/build/perl5/lib/perl5
 tasks:
@@ -20,3 +23,6 @@ tasks:
     - test: |
         cd euchre-live
         make test
+    - deploy: |
+        cd euchre-live
+        make release

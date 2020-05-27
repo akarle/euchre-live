@@ -32,9 +32,12 @@ build: .public.ts $(LIB_FILES) gloat.pl
 
 .PHONY: release
 release: build test
-	git show HEAD --pretty=full -s | sed 's/\(Author\|Commit\): \([^<]\+\).*/\1: \2<redacted>/' > build/public/version.txt
-	rsync -av --delete build/ www@euchre.live:/var/www/preprod-el/
-	ssh www@euchre.live env FORCE=$(FORCE) sh /var/www/restart.sh preprod
+	git show HEAD --pretty=full -s |\
+	    sed 's/\(Author\|Commit\): \([^<]\+\).*/\1: \2<redacted>/' > build/public/version.txt
+	rsync -av --delete --rsh="ssh -o StrictHostKeyChecking=no" \
+	    build/ www@euchre.live:/var/www/preprod-el/
+	ssh -o StrictHostKeyChecking=no www@euchre.live \
+	    env FORCE=$(FORCE) sh /var/www/restart.sh preprod
 
 .PHONY: clean
 clean:

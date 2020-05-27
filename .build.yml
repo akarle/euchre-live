@@ -12,7 +12,6 @@ secrets:
     - f39736f0-38a1-48d5-9c75-13529a1130cd
 environment:
     PERL5LIB: /home/build/perl5/lib/perl5
-shell: true
 tasks:
     - setup: |
         cd euchre-live

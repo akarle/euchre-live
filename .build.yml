@@ -1,0 +1,22 @@
+# .build.yml -- builds.sr.ht CI/CD
+image: debian/stable
+packages:
+    - nodejs
+    - npm
+    - rsync
+    - cpanminus
+sources:
+    - https://git.sr.ht/~akarle/euchre-live
+environment:
+    PERL5LIB: /home/build/perl5/lib/perl5
+tasks:
+    - setup: |
+        cd euchre-live
+        npm install
+        cpanm --installdeps .
+    - build: |
+        cd euchre-live
+        make build
+    - test: |
+        cd euchre-live
+        make test

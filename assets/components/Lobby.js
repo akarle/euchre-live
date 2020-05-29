@@ -98,30 +98,6 @@ export default class Lobby extends React.Component {
                             refresh={this.props.refreshTables}
                         />
                     </div>
-                    {/* <br/><br/>
-                    <p>...or type a table name (deprecated, soon to be removed)</p>
-                    <div className="textRow">
-                        <TextInput
-                            id="lobby__table"
-                            className="lobby__table__input"
-                            size="xl"
-                            labelText=""
-                            placeholder="Table choice?"
-                            invalidText="Sorry, letters A-Z a-z and spaces only"
-                            invalid={tableError}
-                            onChange={this.handleTableIn}
-                            ref={(input) => {this.tableText = input;}}
-                        />
-                        <Button
-                            className="table__button"
-                            hasIconOnly
-                            onClick={()=>this.props.joinTable({table: tableIn, player_name: name})}
-                            renderIcon={Login32}
-                            iconDescription="go!"
-                            tooltipPosition="bottom"
-                            disabled={tableError || !name || name==''}
-                        />
-                    </div> */}
                 </div>
                 
                 )}

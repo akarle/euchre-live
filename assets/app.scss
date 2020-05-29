@@ -319,6 +319,48 @@
 .tb__left {
     padding-left: 2rem;
 }
+.tlist__title {
+    font-size: 1.75rem;
+    font-weight: 400;
+    padding-right: 0.5rem;
+}
+.tlist__title__row {
+    display: flex;
+    align-items: center;
+}
+.tlist__main {
+    border: 3px solid darkgray;
+    margin-right: 4rem;
+}
+.tlist__cntl {
+    border-bottom: 1px solid;
+}
+.tlist__none {
+    margin: 1rem;
+}
+.tlist__holder {
+    height: 45vh;
+    overflow: hidden;
+}
+.tlist__list {
+    height: 45vh;
+    overflow: auto;
+    .bx--tile{
+        margin-bottom: 5px;
+    }
+}
+.table__name {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+.table__name--locked {
+    color: red;
+}
+.table__conflict {
+    font-style: italic;
+    font-weight: 600;
+    color: red;
+}
 
 // .hd__left {
 //     background-color: rosybrown;

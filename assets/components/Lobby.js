@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {Button, TextInput} from 'carbon-components-react';
 import {Login32, CheckmarkOutline32} from '@carbon/icons-react';
+import TableList from './TableList';
 
 export default class Lobby extends React.Component {
 
@@ -24,7 +25,7 @@ export default class Lobby extends React.Component {
     componentDidUpdate (prevProps) {
         const { name } = this.props;
         if (name && (name != prevProps.name)){
-            this.tableText.focus();
+            this.setButton.blur();
         }
     }
 
@@ -52,7 +53,7 @@ export default class Lobby extends React.Component {
     }
 
     render () {
-        const {name, uniqueError} = this.props;
+        const {name, uniqueError, tableList} = this.props;
         const {nameIn, nameError, tableIn, tableError} = this.state;
         return (
             <div id="lobby" className="lobby__outer">
@@ -66,6 +67,7 @@ export default class Lobby extends React.Component {
                         className="lobby__name__input"
                         placeholder="Name to display at table"
                         size="xl"
+                        labelText=""
                         invalidText="Sorry, letters A-Z a-z and spaces only"
                         invalid={nameError}
                         onChange={this.handlePlayerIn}
@@ -79,6 +81,7 @@ export default class Lobby extends React.Component {
                         iconDescription="set name"
                         tooltipPosition="bottom"
                         disabled={nameError}
+                        ref={(button) => {this.setButton = button;}}
                     />
                 </div>
                 <br/><br/>
@@ -86,12 +89,23 @@ export default class Lobby extends React.Component {
                 <div>
                     <h3>Welcome, {name}!</h3>
                     <p>You can change that name if you wish by entering a new one above.</p>
-                    <p>Next tell us the name of the table you'd like to join -- use the same table name as the users you would like to play.</p>
+                    <br/><br/>
+                    <div>
+                        <TableList
+                            tables={tableList}
+                            playerName={name}
+                            joinTable={this.props.joinTable}
+                            refresh={this.props.refreshTables}
+                        />
+                    </div>
+                    {/* <br/><br/>
+                    <p>...or type a table name (deprecated, soon to be removed)</p>
                     <div className="textRow">
                         <TextInput
                             id="lobby__table"
                             className="lobby__table__input"
                             size="xl"
+                            labelText=""
                             placeholder="Table choice?"
                             invalidText="Sorry, letters A-Z a-z and spaces only"
                             invalid={tableError}
@@ -101,14 +115,15 @@ export default class Lobby extends React.Component {
                         <Button
                             className="table__button"
                             hasIconOnly
-                            onClick={()=>this.props.chooseTable(tableIn)}
+                            onClick={()=>this.props.joinTable({table: tableIn, player_name: name})}
                             renderIcon={Login32}
                             iconDescription="go!"
                             tooltipPosition="bottom"
                             disabled={tableError || !name || name==''}
                         />
-                    </div>
+                    </div> */}
                 </div>
+                
                 )}
                 {uniqueError && (
                 <div className="unique__error">
@@ -123,7 +138,10 @@ export default class Lobby extends React.Component {
 
 Lobby.propTypes = {
     setName: PropTypes.func,
-    chooseTable: PropTypes.func,
+    joinTable: PropTypes.func,
     name: PropTypes.string,
-    uniqueError: PropTypes.bool
+    uniqueError: PropTypes.bool,
+    tableList: PropTypes.array,
+    refreshTables: PropTypes.func,
+    createTable: PropTypes.func
 }

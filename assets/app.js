@@ -7,6 +7,7 @@ import { w3cwebsocket as W3CWebSocket } from 'websocket';
 
 // const client = new W3CWebSocket('ws://localhost:3000/play');
 let client = null;
+let socketAddr, tablesAddr;
 // additional fakeClient sockets, only used on tableDebug
 let fc1, fc2, fc3 = null;
 
@@ -24,23 +25,52 @@ class App extends React.Component {
             tableName: initialTable,
             showTable: false,
             uniqueError: false,
-            firstMsg: null
+            firstMsg: null,
+            tableList: []
         };
         const host = window.location.host;
-        const clientAddr = 'ws://' + host + '/play';
-        client = new W3CWebSocket(clientAddr);
-        client.onmessage = (event) => this.processResponse(event);
+        socketAddr = 'ws://' + host + '/play';
+        tablesAddr = 'http://' + host + '/tables';
         if (tableDebug) { 
+            client = new W3CWebSocket(socketAddr);
+            client.onmessage = (event) => this.processResponse(event);
+            this.pingTimer = setInterval(() => { this.sendPing(); }, 5000);
             // on tableDebug send join plus add 3 fakeClient players that join+sit
-            fc1 = new W3CWebSocket(clientAddr);
-            fc2 = new W3CWebSocket(clientAddr);
-            fc3 = new W3CWebSocket(clientAddr);
+            fc1 = new W3CWebSocket(socketAddr);
+            fc2 = new W3CWebSocket(socketAddr);
+            fc3 = new W3CWebSocket(socketAddr);
             // wait 1 second so sockets establish connection
             setTimeout(()=>{
                 this.setFakeGame(initialName, initialTable);
             }, 1000);
         }
-        this.pingTimer = setInterval(() => { client.send(JSON.stringify({action:'ping'})) }, 5000);
+    }
+
+    componentDidMount () {
+        this.fetchTables();
+    }
+
+    sendPing = () => {
+        if (client) {
+            client.send(JSON.stringify({action:'ping'}));
+        }
+    }
+
+    fetchTables = () => {
+        fetch (tablesAddr).then ((response) => {
+            if (response.ok){
+                response.json().then((data) => {
+                    console.log(data);
+                    this.setState({
+                        tableList: data.tables
+                    });
+                });
+            } else {
+                console.log('BadResponse:', response);
+            }
+        }).catch ((error) => {
+            console.log('Caught error:', error);
+        });
     }
 
     setPlayerName = name => {
@@ -92,7 +122,8 @@ class App extends React.Component {
         client.onmessage = (event) => this.processResponse(event);
         this.setState({
             tableName: '',
-            showTable: false
+            showTable: false,
+            firstMsg: null
         }, () => {
             client.send(JSON.stringify({
                 action:'leave_table'
@@ -100,25 +131,33 @@ class App extends React.Component {
         });
     }
 
-    chooseTable = tableName => {
-        if (!tableName || tableName == ''){
+    joinTable = tableInfo => {
+        let clientConnectTimeout = 0;
+        if (client == null){
+            client = new W3CWebSocket(socketAddr);
             client.onmessage = (event) => this.processResponse(event);
-            this.setState({
-                firstMsg: null
-            });
+            this.pingTimer = setInterval(() => { this.sendPing(); }, 5000);
+            clientConnectTimeout = 1000;
+        }
+        const tableName = tableInfo.table;
+        if (!tableName || tableName == ''){
+            console.log('Empty table name!!');
         };
-        this.setState( {
-                tableName: tableName,
-                showTable: false
-        }, () => {
-            if (tableName && tableName != ''){
-                client.send(JSON.stringify({
-                    action:'join_table',
-                    player_name: this.state.playerName,
-                    table: tableName
-                }));    
-            }
-        });
+        setTimeout(()=>{
+            this.setState( {
+                    tableName: tableName,
+                    showTable: false
+            }, () => {
+                if (tableName && tableName != ''){
+                    tableInfo.action = 'join_table';
+                    client.send(JSON.stringify(tableInfo));    
+                }
+            });
+        }, clientConnectTimeout);
+    }
+
+    createTable = tableObj => {
+        console.log('App.createTable:', tableObj);
     }
 
     setFakeGame = (initialName, initialTable) => {
@@ -132,15 +171,18 @@ class App extends React.Component {
     }
 
     render () {
-        const {showTable, playerName, tableName, firstMsg, uniqueError} = this.state;
+        const {showTable, playerName, tableName, firstMsg, uniqueError, tableList} = this.state;
         return (
             <div id="top-app">
                 {!showTable && (
                     <Lobby
                         setName={this.setPlayerName}
-                        chooseTable={this.chooseTable}
+                        joinTable={this.joinTable}
                         name={playerName}
                         uniqueError={uniqueError}
+                        tableList={tableList}
+                        refreshTables={this.fetchTables}
+                        createTable={this.createTable}
                     />
                 )}
                 {showTable && (

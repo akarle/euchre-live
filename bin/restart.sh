@@ -23,6 +23,13 @@ restart() {
             echo "Check!"
     fi
 
+    if [ -n "$UPDATE" ]; then
+        printf "%s" "Updating preprod -> prod..."
+        rm -rf $HOME/prod-el
+        cp -a $HOME/preprod-el $HOME/prod-el
+        echo "Check!"
+    fi
+
     if [ $name = "preprod" ]; then
         export MOJO_MODE=development
     else

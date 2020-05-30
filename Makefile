@@ -39,6 +39,11 @@ release: build test
 	ssh -o StrictHostKeyChecking=no www@euchre.live \
 	    env FORCE=$(FORCE) sh /var/www/restart.sh preprod
 
+.PHONY: release-prod
+release-prod: release
+	ssh -o StrictHostKeyChecking=no www@euchre.live \
+	    env FORCE=$(FORCE) UPDATE=1 sh /var/www/restart.sh prod
+
 .PHONY: clean
 clean:
 	rm -rf build public/asset

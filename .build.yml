@@ -1,31 +1,18 @@
 # .build.yml -- builds.sr.ht CI/CD
 image: debian/stable
 packages:
-    - nodejs
-    - npm
-    - rsync
     - cpanminus
-    - rsync
 sources:
     - https://git.sr.ht/~akarle/euchre-live
-secrets:
-    - f39736f0-38a1-48d5-9c75-13529a1130cd
 environment:
     PERL5LIB: /home/build/perl5/lib/perl5
 tasks:
     - setup: |
         cd euchre-live
-        npm install
         cpanm --installdeps .
-    - build: |
-        cd euchre-live
-        make build
     - test: |
         cd euchre-live
         make test
-    - deploy: |
-        cd euchre-live
-        make release
 triggers:
     - action: email
       condition: always

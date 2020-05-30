@@ -15,8 +15,13 @@ plugin Webpack => {process => [qw(js css sass)]};
 
 get '/' => sub {
     my $c = shift;
+    $c->reply->static('index.html');
+};
+
+get '/game' => sub {
+    my $c = shift;
     if ($ENV{MOJO_MODE} && $ENV{MOJO_MODE} eq 'production') {
-        $c->reply->static('index.html');
+        $c->reply->static('prod.html');
     } else {
         $c->reply->static('preprod.html');
     }

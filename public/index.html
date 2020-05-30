@@ -2,12 +2,101 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <link href="asset/euchre-live.production.css" rel="stylesheet">
-    <link href="suits/H.svg" rel="icon"  type="image/x-icon" />
+    <link href="suits/H.svg" rel="icon" type="image/x-icon" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      body {
+          background-color: #F5F5F5;
+          font-family: sans-serif;
+          margin-left: 20px;
+          margin-right: 20px;
+          font-size: 1em;
+          padding-top: 5em;
+          padding-bottom: 5em;
+      }
+
+      tt {
+          font-family: "Courier New", monospace;
+          font-size: 1em;
+      }
+
+      @media only screen and (min-width: 992px) {
+          body {
+              width: 60%;
+              margin: 0 auto;
+          }
+      }
+
+      h1, #logo {
+          text-align: center;
+      }
+
+      a {
+          color: #0066cc;
+      }
+
+      #play-btn {
+        background-color: #00b359;
+        color: white;
+        font-family: monospace;
+        padding: .7em;
+        border-radius: .5em;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 2.5em;
+        margin: .2em;
+        cursor: pointer;
+      }
+    </style>
     <title>Euchre Live!!</title>
   </head>
   <body>
-    <div id="content"></div>
-    <script src="asset/euchre-live.production.js"></script>
+    <h1>Welcome to <tt>euchre.live!</tt></h1>
+    <div id="logo">
+       <img src="suits/H.svg" alt="Hearts" width="10%">
+       <img src="suits/D.svg" alt="Diamonds" width="10%">
+       <img src="suits/S.svg" alt="Spades" width="10%">
+       <img src="suits/C.svg" alt="Clubs" width="10%">
+    </div>
+
+    <h3>What is This Site?</h3>
+
+    <p>
+      <tt>euchre.live</tt> is a
+      <a href="https://sr.ht/~akarle/euchre-live">free and open source</a>
+      web-app to play Euchre, an old 19th century card game.
+    </p>
+
+    <p>
+      It is developed by Alex and Chris Karle, with a focus on
+      enabling their family to play the game socially-distantly during
+      the COVID-19 Pandemic.
+    </p>
+
+    <p>
+      The site is still under active development, with improvements weekly,
+      but the basics are there and you're welcome to play a hand!
+    </p>
+
+    <div style="text-align: center">
+      <a id="play-btn" href="/game">Play Now</a>
+    </div>
+
+    <h3>How do I Play?</h3>
+
+    <p>
+      There's multiple good resources online, but
+      <a href="https://www.coololdgames.com/card-games/trick-taking/euchre/">this</a>
+      is a good place to start!
+    </p>
+
+    <h3>Think this is cool?</h3>
+
+    <p>
+      Don't be a stranger!
+      <a href="mailto:~akarle/public-inbox@lists.sr.ht">Drop us a line</a>
+      on our public mailing list!
+    </p>
+
   </body>
 </html>

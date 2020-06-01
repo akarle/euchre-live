@@ -1,9 +1,18 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { ClickableTile, Button, ModalWrapper, TextInput, Checkbox } from 'carbon-components-react';
+import { ClickableTile, Button, ModalWrapper, TextInput, Checkbox, ComposedModal,
+     ModalHeader, ModalBody, ModalFooter } from 'carbon-components-react';
 import {Renew16, Locked16} from '@carbon/icons-react';
 
 export default class TableList extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            pwdOpen: false,
+            joinInfo: null
+        };
+    }
 
     conflictHandler = (tableName) => {
         const {playerName} = this.props;
@@ -18,7 +27,14 @@ export default class TableList extends React.Component {
             table: tableName,
             player_name: playerName
         };
-        this.props.joinTable(joinInfo);
+        if (!hasPwd) {
+            this.props.joinTable(joinInfo);
+        } else {
+            this.setState({
+                joinInfo: joinInfo,
+                pwdOpen: true
+            })
+        }
     }
 
     handleCreate = () => {
@@ -43,7 +59,27 @@ export default class TableList extends React.Component {
     handleRefresh = () => {
         this.refreshButton.blur();
         this.props.refresh();
-    }
+    };
+
+    handleModalClose = () => {
+        console.log('modal close');
+        this.pmPwd.value='';
+        this.setState({
+            pwdOpen: false
+        });
+    };
+
+    handleModalSave = () => {
+        const {joinInfo} = this.state;
+        const pwd = this.pmPwd.value;
+        console.log('modal save, pwd=', pwd);
+        joinInfo.password = pwd;
+        this.props.joinTable(joinInfo);
+        this.pmPwd.value='';
+        this.setState({
+            pwdOpen: false
+        });
+    };
 
     renderCards = () => {
         const {tables, playerName} = this.props;
@@ -96,12 +132,47 @@ export default class TableList extends React.Component {
         return retVal;
     }
 
+    renderPasswordModal = () => {
+        const {pwdOpen} = this.state;
+        return (
+            <ComposedModal
+                className="pm"
+                open={pwdOpen}
+                onClose={this.handleModalClose}>
+                <ModalHeader
+                    className="pm__head"
+                    title="Enter Table Password"
+                    iconDescription="close"
+                    // closeModal={this.handleModalClose}
+                    />
+                <ModalBody
+                    className="pm__body"
+                >
+                    <TextInput
+                        id="pm__pwd"
+                        placeholder="enter table password"
+                        labelText="Password"
+                        ref={(input) => {this.pmPwd = input;}}
+                    />
+                </ModalBody>
+                <ModalFooter
+                    className="pm_foot"
+                    primaryButtonText="Save"
+                    // closeModal={this.handleModalClose}
+                    onRequestSubmit={this.handleModalSave}
+                />
+            </ComposedModal>
+        );
+    }
+
     render () {
         const {tables} = this.props;
         const showCards = tables.length > 0;
         const cards = this.renderCards();
+        const passwordModal = this.renderPasswordModal(); 
         return (
             <div className="tlist__outer">
+                {passwordModal}
                 <div className="tlist__header">
                     <div className="tlist__title__row">
                         <div className="tlist__title">Click a table to join it... or</div>

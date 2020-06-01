@@ -117,6 +117,7 @@ sub pong {
 # player_name
 # table
 # password (opt)
+# settings (hash-ref, opt)
 sub join_table {
     my ($p, $msg) = @_;
 
@@ -139,6 +140,7 @@ sub join_table {
     if (!exists $DEALERS{$tid}) {
         $DEALERS{$tid} = Euchre::Dealer->new(
             id => $tid,
+            (exists $msg->{settings} ? (settings => $msg->{settings}) : ()),
             (exists $msg->{password} ? (password => $msg->{password}) : ()),
         );
         $TOTAL_TABLES++;

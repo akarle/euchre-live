@@ -13,6 +13,7 @@ use Class::Tiny qw(id), {
     password => '',
     game     => sub { Euchre::Game->new() },
     players  => sub { {} },
+    settings => sub { {} },
     start_time => sub { time },
 };
 
@@ -220,6 +221,7 @@ sub broadcast_gamestate {
             game => $msg,
             is_spectator => $p->is_spectator ? 1 : 0,
             table_id => $self->id,
+            settings => $self->settings,
         };
 
         if (!$p->is_spectator) {

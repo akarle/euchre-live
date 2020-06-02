@@ -1,6 +1,6 @@
 # Rebuilding the webpack for a server-only release is a painful
 # few minutes on my poor old thinkpad. We can do better
-JS_FILES := $(shell find assets)
+ASSETS := $(shell find assets)
 PUBLIC_FILES := $(shell find public)
 LIB_FILES := $(shell find lib)
 
@@ -19,12 +19,12 @@ test:
 # If no public files have changed, don't rebuild the webpack!
 # We make this timestamp file the dependency for build to
 # ensure we don't do it too often...
-.public.ts: $(JS_FILES) $(PUBLIC_FILES)
+.assets.ts: $(ASSETS)
 	./bin/build.sh
-	touch .public.ts
+	touch .assets.ts
 
 # Only rebuild if any of public/ or the Perl stuff has changed
-build: .public.ts $(LIB_FILES) gloat.pl
+build: .assets.ts $(PUBLIC_FILES) $(LIB_FILES) gloat.pl
 	rm -rf build
 	mkdir -p build
 	cp -a gloat.pl public lib build

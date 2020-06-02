@@ -3,4 +3,6 @@ public/asset
 tags
 /build/
 /build.*/
-.public.ts
+
+# Timestamp files
+.*.ts

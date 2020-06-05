@@ -45,9 +45,14 @@ export default class TableList extends React.Component {
             alert('Unnamed tables are not permitted');
         } else {
             const pwd = this.ctPwd.value;
+            let settings = {};
+            settings.hard_order = this.optHorder.checked;
+            settings.hard_pick = this.optHpick.checked;
+            settings.stick_dealer = this.optStick.checked;
             let joinInfo = {
                 table: tableName,
-                player_name: playerName
+                player_name: playerName,
+                settings: settings
             }
             if (pwd && pwd != ''){
                 joinInfo.password = pwd;
@@ -109,12 +114,20 @@ export default class TableList extends React.Component {
                 })
                 const lockIcon = table.has_password ? (<Locked16 fill="red" description="locked table"/>) : null;
                 const nameClass = table.has_password ? "table__name table__name--locked" : "table__name";
+                const settings = table.settings;
+                let optionSpan = '';
+                if (settings.hard_pick || settings.hard_order || settings.stick_dealer){
+                    const thp = settings.hard_pick ? 'HardPick' : '';
+                    const tho = settings.hard_order ? 'HardOrder' : '';
+                    const tsd = settings.stick_dealer ? 'StickDealer' : '';
+                    optionSpan = (<span className="table__options">&nbsp;&nbsp;&nbsp;{thp} {tho} {tsd}</span>);
+                }
                 retVal.push(
                     <ClickableTile
                         key={table.name}
                         handleClick={() => clickHandler(table.name, table.has_password)}
                         >
-                        <div className={nameClass}>{lockIcon}{table.name}</div>
+                        <div className={nameClass}>{lockIcon}{table.name}{optionSpan}</div>
                         {conflictWarning}
                         <div className="table__players">Seated: {seated}</div>
                         <div className="table__spectators">Spectators: {specs}</div>
@@ -201,11 +214,11 @@ export default class TableList extends React.Component {
                             <fieldset className="ct__optSet">
                                 <legend className="ct__optLabel">Game Options</legend>
                                 <Checkbox className="opt__hpick" id="opt__hpick" ref={(input) => {this.optHpick = input}}
-                                    defaultChecked labelText="Dealer must have suit to pick up"/>
+                                    defaultChecked labelText="HardPick: Dealer must have suit to pick up"/>
                                 <Checkbox className="opt__horder" id="opt__horder" ref={(input) => {this.optHorder = input}}
-                                    defaultChecked labelText="Must play alone if ordering partner"/>
+                                    defaultChecked labelText="HardOrder: Must play alone if ordering partner"/>
                                 <Checkbox className="opt__stick" id="opt__stick" ref={(input) => {this.optStick = input}}
-                                    labelText="Stick the dealer" />
+                                    labelText="StickDealer: Dealer must name trump if no one has" />
                             </fieldset>
                         </ModalWrapper>
                     </div>

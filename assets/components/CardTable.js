@@ -17,9 +17,6 @@ const suit = {
     C: 'Clubs'
 }
 
-const hard_order = true;
-const hard_pick = true;
-
 export default class CardTable extends React.Component {
 
     constructor(props) {
@@ -57,8 +54,12 @@ export default class CardTable extends React.Component {
             innerWinMsg: '',
             onlyAlone: false,
             noPick: false,
+            noPass: false,
             amSpectator: false,
-            latestPost: ''
+            latestPost: '',
+            hard_order: true,
+            hard_pick: true,
+            stick_dealer: false
         };
     };
 
@@ -242,7 +243,10 @@ export default class CardTable extends React.Component {
             this.setState({
                 playerNames: plAr,
                 mySeat: mySeat,
-                amSpectator: newSpec
+                amSpectator: newSpec,
+                hard_order: msg.settings.hard_order,
+                hard_pick: msg.settings.hard_pick,
+                stick_dealer: msg.settings.stick_dealer
             });
         };
     }
@@ -266,10 +270,11 @@ export default class CardTable extends React.Component {
                 // second condition is for all players pass trump twice
             this.trumpStartSetup(msg);
         }
-        const {leftSeat, rightSeat, partnerSeat, mySeat, dealSeat} = this.state;
+        const {leftSeat, rightSeat, partnerSeat, mySeat, dealSeat, hard_order, hard_pick, stick_dealer} = this.state;
         const vote1phase = msg.game.pass_count < 4;
         const phaseString = vote1phase ? 'vote' : 'vote2';
         const onlyAlone = hard_order && vote1phase && dealSeat == partnerSeat;
+        const noPass = stick_dealer && !vote1phase && (dealSeat == mySeat);
         const noPick = hard_pick && vote1phase && (dealSeat == mySeat) && !this.haveSuit(msg.hand, msg.game.trump_nominee);
         let turnInfo = ['', '', '', ''];
         turnInfo[msg.game.turn] = 'trump?';
@@ -279,6 +284,7 @@ export default class CardTable extends React.Component {
             turnSeat: msg.game.turn,
             onlyAlone: onlyAlone,
             noPick: noPick,
+            noPass: noPass,
             handLengths: msg.game.hand_lengths,
             leftTurnInfo: turnInfo[leftSeat],
             rightTurnInfo: turnInfo[rightSeat],
@@ -677,7 +683,7 @@ export default class CardTable extends React.Component {
         const { playerNames, mySeat, phase, myCards, myTurnInfo, amSpectator,
             partnerHandInfo, partnerTurnInfo, partnerSeat, leftTurnInfo, leftHandInfo, leftSeat,
             rightHandInfo, rightTurnInfo, rightSeat, trumpPlace, trumpNom, turnSeat,
-            dealSeat, trump, handLengths, score, trickWinner, bannerMsg, noPick, onlyAlone, latestPost } = this.state;
+            dealSeat, trump, handLengths, score, trickWinner, bannerMsg, noPick, noPass, onlyAlone, latestPost } = this.state;
         const showSeatPicker = phase == 'lobby';
         const showGameOver = phase == 'end';
         const showTrump = (phase == 'vote') || (phase == 'vote2') || (phase == 'swap');
@@ -787,6 +793,7 @@ export default class CardTable extends React.Component {
                                     myDeal={dealSeat == mySeat}
                                     onlyAlone={onlyAlone}
                                     noPick={noPick}
+                                    noPass={noPass}
                                     handleVote={this.sendVote} />
                             )}
                             {showSwap && !amSpectator && (

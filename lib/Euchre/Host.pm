@@ -188,6 +188,7 @@ sub list_tables {
             has_password => $d->password ? 1 : 0,
             players => $d->player_names,
             spectators => [map { $_->name } @{$d->spectators}],
+            settings => $d->settings,
         };
     }
     return \@tables;

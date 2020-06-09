@@ -35,6 +35,8 @@ restart() {
     else
         export MOJO_MODE=production
     fi
+    # Always log in debug, regardless of prod vs preprod
+    export MOJO_LOG_LEVEL=debug
 
     printf "%s" "Starting new server... "
     $HOME/${name}-el/gloat.pl daemon -l http://*:$port >> /var/log/gloat/$name.log 2>&1 &

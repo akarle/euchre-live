@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
-import {Button, Grid, Row, Column, OverflowMenu, OverflowMenuItem} from 'carbon-components-react';
-import {Logout32, Redo32, Package32} from '@carbon/icons-react';
+import {Button, Grid, Row, Column, OverflowMenu, OverflowMenuItem, Tooltip} from 'carbon-components-react';
+import {Logout32, Redo32, Package32, View16, ViewOff16, Information16} from '@carbon/icons-react';
 import SeatPicker from './SeatPicker';
 import MainHand from './MainHand';
 import HiddenHand from './HiddenHand';
@@ -50,6 +50,7 @@ export default class CardTable extends React.Component {
             score: [0, 0],
             trickWinner:'',
             tricks:[],
+            spectators: [],
             bannerMsg: '',
             innerWinMsg: '',
             onlyAlone: false,
@@ -89,6 +90,9 @@ export default class CardTable extends React.Component {
             console.log(msg);
         }
         if ('game_state' == msg.msg_type) {
+            this.setState({
+                spectators: msg.game.spectators
+            });
             if (msg.game.phase != 'lobby') {
                 if (!_.isEqual(playerNames, msg.game.players)){
                     this.processPlayerChange(msg);
@@ -170,6 +174,9 @@ export default class CardTable extends React.Component {
         // in cases of forceRejoin, the firstMsg could be lobby, vote, play
         // for cases of ordinary game join, will be lobby
         if (msg && msg.game) {
+            this.setState({
+                spectators: msg.game.spectators
+            });
             switch (msg.game.phase) {
                 case 'lobby':
                     this.processLobby(msg);
@@ -679,11 +686,29 @@ export default class CardTable extends React.Component {
         return retVal;
     }
 
+    genSpecMsgObj = () => {
+        const {spectators} = this.state;
+        let retVal = {}
+        if (!spectators || spectators.length == 0) {
+            retVal.title = 'No Spectators';
+            retVal.list = null;
+        } else {
+            retVal.title = (spectators.length == 1) ? '1 Spectator:' : spectators.length + ' Spectators:'; 
+            retVal.list = spectators[0];
+            for (let i=1; i < spectators.length; i++) {
+                retVal.list += ', ' + spectators[i];
+            };
+        }
+        return retVal;
+    }
+
     render () {
         const { playerNames, mySeat, phase, myCards, myTurnInfo, amSpectator,
             partnerHandInfo, partnerTurnInfo, partnerSeat, leftTurnInfo, leftHandInfo, leftSeat,
-            rightHandInfo, rightTurnInfo, rightSeat, trumpPlace, trumpNom, turnSeat,
-            dealSeat, trump, handLengths, score, trickWinner, bannerMsg, noPick, noPass, onlyAlone, latestPost } = this.state;
+            rightHandInfo, rightTurnInfo, rightSeat, trumpPlace, trumpNom, turnSeat, spectators,
+            dealSeat, trump, handLengths, score, trickWinner, bannerMsg, noPick, noPass, onlyAlone,
+            hard_pick, hard_order, stick_dealer, latestPost } = this.state;
+        const {tableName} = this.props;
         const showSeatPicker = phase == 'lobby';
         const showGameOver = phase == 'end';
         const showTrump = (phase == 'vote') || (phase == 'vote2') || (phase == 'swap');
@@ -697,6 +722,8 @@ export default class CardTable extends React.Component {
         const gameOverDisplay = (phase == 'end') ? this.genGameOver() : [];
         const usLabel = amSpectator ? playerNames[1] + ' & ' + playerNames[3] + ': ' : 'Us: ';
         const themLabel = amSpectator ? playerNames[0] + ' & ' + playerNames[2] + ': ' : 'Them: ';
+        const hasSpec = spectators.length > 0;
+        const specMsgObj = this.genSpecMsgObj();
         return (
             <div id="table" className="table__main">
                 <Grid className="og">
@@ -834,7 +861,36 @@ export default class CardTable extends React.Component {
                         <div className="us__score">{usLabel}{score[0]}</div>
                         <div className="them__score">{themLabel}{score[1]}</div>
                         <div className="trick__win">{trickWinner}</div>
-                    </div>)}
+                        <div className="info__buttons">
+                            <Tooltip
+                                direction="left"
+                                renderIcon={Information16}
+                            >
+                                <div className="table__info">
+                                    <div className="ti__name">{tableName}</div>
+                                    <div className="ti__opt">HardOrder: {hard_order ? 'on' : 'off'}</div>
+                                    <div className="ti__opt">HardPick: {hard_pick ? 'on' : 'off'}</div>
+                                    <div className="ti__opt">StickDealer: {stick_dealer ? 'on' : 'off'}</div>
+                                </div>
+                            </Tooltip>
+                            <Tooltip
+                                direction="left"
+                                renderIcon={hasSpec? View16 : ViewOff16}
+                            >
+                                <div className="spec__info">
+                                    <div className="spec__title">
+                                        {specMsgObj.title}
+                                    </div>
+                                    {(specMsgObj.list != null) && (
+                                        <div className="spec__list">
+                                            {specMsgObj.list}
+                                        </div>
+                                    )}
+                                </div>
+                            </Tooltip>
+                        </div>
+                    </div>
+                    )}
                 </Row>
                 <Row className="tm__right">
                     {!showSeatPicker && (

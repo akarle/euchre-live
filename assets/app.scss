@@ -1,3 +1,7 @@
+.err__post {
+    color: red;
+}
+
 @import 'carbon-components/scss/globals/scss/styles.scss';
 
 .lobby__outer {
@@ -177,7 +181,7 @@
 .chat__input__row {
     display: flex;
 }
-.chat__post {
+.chat__post, .err__post {
     padding-right: 0.3rem;
     padding-left: 0.3rem;
 }

@@ -23,10 +23,16 @@ class ChatPanel extends React.Component {
         if (receivedChat && (receivedChat != prevProps.receivedChat)){
             const nextNum = numPosts + 1;
             const id = 'post-' + nextNum;
+            let clsName = 'chat__post';
+            let postMsg = receivedChat;
+            if (receivedChat.startsWith('<<Error')){
+                clsName = 'err__post';
+                postMsg = receivedChat.substring(2);
+            }
             nextArray.push(
-                <p className="chat__post"
+                <p className={clsName}
                     key={nextNum}
-                    id={id}>{receivedChat}</p>
+                    id={id}>{postMsg}</p>
             );
             if (nextArray.length > MAX_POSTS){
                 nextArray = nextArray.slice(1);

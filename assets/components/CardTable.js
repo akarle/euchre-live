@@ -58,6 +58,7 @@ export default class CardTable extends React.Component {
             noPass: false,
             amSpectator: false,
             latestPost: '',
+            showErrors: true,
             hard_order: true,
             hard_pick: true,
             stick_dealer: false
@@ -104,6 +105,17 @@ export default class CardTable extends React.Component {
             }
         } else if ('chat' == msg.msg_type) {
             this.processChat(msg);
+        } else if ('error' == msg.msg_type) {
+            this.processError(msg);
+        }
+    };
+
+    processError = msg => {
+        if (msg.msg) {
+            const post = '<<Error: ' + msg.msg;
+            this.setState({
+                latestPost: post
+            });
         }
     };
 
@@ -564,6 +576,10 @@ export default class CardTable extends React.Component {
         }
     }
 
+    toggleErrorDisplay = () => {
+        console.log('coming soon :-)');
+    }
+
     genGameOver = () => {
         const {innerWinMsg, amSpectator} = this.state;
         let retVal = [];
@@ -707,7 +723,7 @@ export default class CardTable extends React.Component {
             partnerHandInfo, partnerTurnInfo, partnerSeat, leftTurnInfo, leftHandInfo, leftSeat,
             rightHandInfo, rightTurnInfo, rightSeat, trumpPlace, trumpNom, turnSeat, spectators,
             dealSeat, trump, handLengths, score, trickWinner, bannerMsg, noPick, noPass, onlyAlone,
-            hard_pick, hard_order, stick_dealer, latestPost } = this.state;
+            hard_pick, hard_order, stick_dealer, latestPost, showErrors } = this.state;
         const {tableName} = this.props;
         const showSeatPicker = phase == 'lobby';
         const showGameOver = phase == 'end';
@@ -724,6 +740,7 @@ export default class CardTable extends React.Component {
         const themLabel = amSpectator ? playerNames[0] + ' & ' + playerNames[2] + ': ' : 'Them: ';
         const hasSpec = spectators.length > 0;
         const specMsgObj = this.genSpecMsgObj();
+        const toggleErrorMsg = showErrors ? 'Hide errors in chat' : 'Show errors in chat';
         return (
             <div id="table" className="table__main">
                 <Grid className="og">
@@ -748,6 +765,10 @@ export default class CardTable extends React.Component {
                                             <OverflowMenuItem
                                                 itemText="Exit to Lobby"
                                                 onClick={this.sendExit}
+                                            />
+                                            <OverflowMenuItem
+                                                itemText={toggleErrorMsg}
+                                                onClick={this.toggleErrorDisplay}
                                             />
                                         </OverflowMenu>
                                     </div>

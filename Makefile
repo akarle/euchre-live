@@ -35,14 +35,14 @@ release: build test
 	git show HEAD --pretty=full -s |\
 	    sed 's/\(Author\|Commit\): \([^<]\+\).*/\1: \2<redacted>/' > build/public/version.txt
 	rsync -av --delete --rsh="ssh -o StrictHostKeyChecking=no" \
-	    build/ www@euchre.live:/var/www/preprod-el/
-	ssh -o StrictHostKeyChecking=no www@euchre.live \
-	    env FORCE=$(FORCE) sh /var/www/restart.sh preprod
+	    build/ _euchre@euchre.live:preprod-el/
+	ssh -o StrictHostKeyChecking=no _euchre@euchre.live \
+	    env FORCE=$(FORCE) sh restart.sh preprod
 
 .PHONY: release-prod
 release-prod: release
-	ssh -o StrictHostKeyChecking=no www@euchre.live \
-	    env FORCE=$(FORCE) UPDATE=1 sh /var/www/restart.sh prod
+	ssh -o StrictHostKeyChecking=no _euchre@euchre.live \
+	    env FORCE=$(FORCE) UPDATE=1 sh restart.sh prod
 
 .PHONY: clean
 clean:

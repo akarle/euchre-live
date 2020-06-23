@@ -16,6 +16,17 @@ class ChatPanel extends React.Component {
         }
     };
 
+    componentDidMount () {
+        this.chatIn.onkeydown = this.checkKey;
+    }
+
+    checkKey = event => {
+        const code = event.keyCode || event.which;
+        if (code == 13) {
+            this.handleSendPost();
+        }
+    }
+
     componentDidUpdate (prevProps) {
         const { receivedChat } = this.props;
         const { postArray, numPosts } = this.state;
@@ -83,6 +94,8 @@ class ChatPanel extends React.Component {
                         id="chat__in"
                         light
                         className="chat__in__input"
+                        labelText="text input for chat"
+                        hideLabel={true}
                         placeholder="enter chat posts here"
                         size="sm"
                         onChange={this.handleChatIn}

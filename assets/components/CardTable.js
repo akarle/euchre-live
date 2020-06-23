@@ -577,7 +577,17 @@ export default class CardTable extends React.Component {
     }
 
     toggleErrorDisplay = () => {
-        console.log('coming soon :-)');
+        // NOTE this trick requires that .err__post is the first selector of all,
+        //  so requires it first in our .scss, even before imports
+        const { showErrors } = this.state;
+        let stylesheet = document.styleSheets[0];
+        const nextShowErrors = !showErrors;
+        const rule = nextShowErrors ? 'inherit' : 'none';
+        stylesheet.cssRules[0].style.display = rule;
+        this.setState({
+            showErrors: nextShowErrors
+        })
+        console.log('toggleErrorDisplay');
     }
 
     genGameOver = () => {
@@ -586,7 +596,7 @@ export default class CardTable extends React.Component {
         const instMsg = amSpectator ? 'You can take a seat if one becomes empty, or you can return to the lobby...'
         : 'You can play again at this table, or return to the lobby to change your table or player name...';
         retVal.push(
-        <div className="gover__outer">
+        <div className="gover__outer" key="gom1">
             <div className="gover__inwin">{innerWinMsg}</div>
             <div className="gover__inst">
                {instMsg} 
@@ -633,7 +643,7 @@ export default class CardTable extends React.Component {
             midClass += ' partner';
         }
         retVal.push (
-            <div className="trick__outer">
+            <div className="trick__outer" key="gt1">
                 <Grid className="trick__grid">
                     <Row className="trick__row">
                         <Column>

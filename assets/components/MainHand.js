@@ -16,8 +16,11 @@ class MainHand extends React.Component {
                     className="mh__card__div">
                     <Link
                         className="mh__card__link"
-                        href="javascript:void(0)"
-                        onClick={()=> this.props.cardClick(index)}>
+                        href="#"
+                        onClick={(e)=> {
+                            e.preventDefault();
+                            this.props.cardClick(index)}
+                        }>
                         <img className="mh__card" src={cardSrc} />
                     </Link>
                 </div>

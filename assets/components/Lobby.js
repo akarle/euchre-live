@@ -19,6 +19,7 @@ export default class Lobby extends React.Component {
     componentDidMount () {
         if (this.nameText) {
             this.nameText.focus();
+            this.nameText.onkeydown = this.checkKey;
         }
     }
 
@@ -26,6 +27,17 @@ export default class Lobby extends React.Component {
         const { name } = this.props;
         if (name && (name != prevProps.name)){
             this.setButton.blur();
+        }
+    }
+
+    checkKey = event => {
+        const code = event.keyCode || event.which;
+        if (code == 13) {
+            const { nameIn } = this.state;
+            if (nameIn != ''){
+                this.props.setName(nameIn);
+                this.nameText.blur();
+            }
         }
     }
 

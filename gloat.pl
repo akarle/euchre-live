@@ -11,6 +11,9 @@ use lib "$FindBin::RealBin/lib";
 
 use Euchre::Host;
 
+# Always log in debug, regardless of prod vs preprod
+$ENV{MOJO_LOG_LEVEL} = 'debug';
+
 plugin Webpack => {process => [qw(js css sass)]};
 
 get '/' => sub {

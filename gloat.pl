@@ -23,7 +23,7 @@ get '/' => sub {
 
 get '/game' => sub {
     my $c = shift;
-    if ($ENV{MOJO_MODE} && $ENV{MOJO_MODE} eq 'production') {
+    if (app->mode() eq 'production') {
         $c->reply->static('prod.html');
     } else {
         $c->reply->static('preprod.html');

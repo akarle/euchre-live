@@ -5,7 +5,10 @@ use warnings;
 
 package Euchre::Host;
 
-use Mojo::Log;
+if (!defined $::LOG) {
+    use Mojo::Log;
+    $::LOG = Mojo::Log->new();
+}
 
 use Euchre::Errors;
 use Euchre::Dealer;
@@ -27,8 +30,6 @@ our @EXPORT = qw(
 our %PLAYERS;
 our %DEALERS;
 our %PINDEX; # Player id => Dealer id
-
-our $LOG = Mojo::Log->new;
 
 # Stats
 our $TOTAL_PLAYERS = 0;
@@ -59,7 +60,7 @@ sub gloaters_never_win {
     my $p = $PLAYERS{$id};
     try_leave_table($p);
 
-    $LOG->info("Player " . $p->name . " went inactive");
+    $::LOG->info("Player " . $p->name . " went inactive");
     delete $PLAYERS{$id};
 }
 
@@ -144,14 +145,14 @@ sub join_table {
             (exists $msg->{password} ? (password => $msg->{password}) : ()),
         );
         $TOTAL_TABLES++;
-        $LOG->info("Player " . $p->name . " created table $tid");
+        $::LOG->info("Player " . $p->name . " created table $tid");
     }
 
     my $d = $DEALERS{$tid};
     if (my $errno = $d->add_player($p, $msg->{password})) {
         $p->error($errno);
     } else {
-        $LOG->info("Player " . $p->name . " joined table $tid");
+        $::LOG->info("Player " . $p->name . " joined table $tid");
         $PINDEX{$p->id} = $tid;
     }
 }
@@ -169,9 +170,9 @@ sub leave_table {
         # Success! Was removed properly, delete PINDEX
         # Also delete the Dealer itself if that was the last player
         # to leave and the game looks finished
-        $LOG->info("Player " . $p->name . " left table " . $d->id);
+        $::LOG->info("Player " . $p->name . " left table " . $d->id);
         if (!$d->is_active && $d->game->phase eq 'end') {
-            $LOG->info("Deleting Table " . $d->id . " that appears to have finished");
+            $::LOG->info("Deleting Table " . $d->id . " that appears to have finished");
             delete $DEALERS{$PINDEX{$p->id}};
         }
         delete $PINDEX{$p->id};
@@ -246,7 +247,7 @@ sub require_keys {
 sub prune_tables {
     for my $k (keys %DEALERS) {
         if (!$DEALERS{$k}->is_active) {
-            $LOG->info("Pruning inactive table " . $DEALERS{$k}->id);
+            $::LOG->info("Pruning inactive table " . $DEALERS{$k}->id);
             delete $DEALERS{$k};
         }
     }
@@ -256,7 +257,7 @@ sub prune_tables {
 sub prune_players {
     for my $p (keys %PLAYERS) {
         if (!$PLAYERS{$p}->is_active) {
-            $LOG->info("Pruning inactive player " . $PLAYERS{$p}->name);
+            $::LOG->info("Pruning inactive player " . $PLAYERS{$p}->name);
             try_leave_table($PLAYERS{$p});
             delete $PLAYERS{$p};
         }

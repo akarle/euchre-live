@@ -9,10 +9,11 @@ use Mojo::IOLoop;
 use FindBin;
 use lib "$FindBin::RealBin/lib";
 
+$::LOG = app->log; # save off for global access, befroe loading Euchre::Host
 use Euchre::Host;
 
 # Always log in debug, regardless of prod vs preprod
-$ENV{MOJO_LOG_LEVEL} = 'debug';
+app->log->level('debug');
 
 plugin Webpack => {process => [qw(js css sass)]};
 
@@ -69,5 +70,16 @@ Mojo::IOLoop->recurring($cleanup_time => sub {
         prune_tables();
         prune_players();
     });
+
+# Our prod environment is a true daemon
+if (app->mode() eq 'production') {
+    app->hook(
+        before_server_start => sub {
+            my ($server, $app) = @_;
+            $server->daemonize();
+            app->log->path("/var/log/gloat/prod.log");
+        }
+    );
+}
 
 app->start;

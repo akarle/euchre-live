@@ -52,6 +52,14 @@ $ ./build.sh
 $ ./build/gloat.pl daemon
 ```
 
+To actually daemonize (in a production environment), run with `-m production`.
+This will log to /var/log/gloat, which should exist and be writable to the
+server.
+
+```sh
+$ ./build/gloat.pl daemon -m production
+```
+
 Hacking
 -------
 

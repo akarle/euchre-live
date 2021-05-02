@@ -29,12 +29,23 @@ Installation
 * Node (tested on 12.15.0, no idea how portable)
 * npm
 * [cpanminus](https://metacpan.org/pod/App::cpanminus)
+  - Alternatively, on OpenBSD 6.9, the packaged `p5-Mojolicious` and
+    `p5-Class-Tiny` packages are sufficient to run the server!
 
 ### Getting the Dependencies
+
+On Linux:
 
 ```sh
 $ npm i
 $ cpanm --installdeps .
+```
+
+On OpenBSD (6.9):
+
+```sh
+$ doas pkg_add node p5-Mojolicious p5-Class-Tiny
+$ npm i
 ```
 
 ### Building the Release

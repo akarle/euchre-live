@@ -15,8 +15,6 @@ use Euchre::Host;
 # Always log in debug, regardless of prod vs preprod
 app->log->level('debug');
 
-plugin Webpack => {process => [qw(js css sass)]};
-
 get '/' => sub {
     my $c = shift;
     $c->reply->static('index.html');

@@ -1,20 +1,26 @@
 #!/bin/sh
-# build.sh -- build the webpack assets pre-deployment
+# build.sh -- build the JS bundle pre-deployment
 set -e
 die() {
     echo "$1" 1>&2
     exit 1
 }
 
-[ -e "gloat.pl" ] || die "Not in root of euchre-live"
+build() {
+    out="$1"
+    shift
+    ./node_modules/.bin/esbuild \
+        --bundle \
+        --loader:.js=jsx \
+        "$@" \
+        assets/app.js \
+        --outfile="public/asset/euchre-live.$out.js"
+}
 
-# export MOJO_WEBPACK_VERBOSE=1
-export MOJO_WEBPACK_BUILD=1
+ROOT=$(dirname "$(dirname "$0")")
+cd $ROOT || die "unable to cd to $ROOT"
 
-echo ">>> Building Development Version"
-MOJO_MODE=development ./gloat.pl routes
-
-echo ">>> Building Production Version"
-MOJO_MODE=production ./gloat.pl routes
+build development
+build production --minify
 
 echo ">>> Build Success! <<<"

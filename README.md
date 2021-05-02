@@ -62,16 +62,13 @@ $ ./build/gloat.pl daemon -m production
 
 Hacking
 -------
-
-Use [run.sh](./run.sh) to run the server with webpack watching the files
-for incremental rebuilding (while hacking).
+For fast iteration on the code, we have a `npm` script to watch the JS files with
+`esbuild` and rebuild the bundle on the fly:
 
 ```sh
-$ ./run.sh
+$ ./gloat.pl daemon # fire up backend first
+$ npm run dev
 ```
-
-This is not how it is run in production, as the overhead of webpack is quite
-high.
 
 License
 -------

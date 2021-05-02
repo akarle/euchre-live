@@ -75,4 +75,4 @@ high.
 
 License
 -------
-MIT
+[MIT](./LICENSE)

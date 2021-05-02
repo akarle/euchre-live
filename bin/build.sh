@@ -20,7 +20,7 @@ build() {
 ROOT=$(dirname "$(dirname "$0")")
 cd $ROOT || die "unable to cd to $ROOT"
 
-build development
+build development --sourcemap
 build production --minify
 
 echo ">>> Build Success! <<<"

@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "devDependencies": {},
   "scripts": {
-      "dev": "cd assets && esbuild --bundle --loader:.js=jsx --watch app.js --outfile=../public/asset/euchre-live.development.js"
+      "dev": "cd assets && esbuild --sourcemap --bundle --loader:.js=jsx --watch app.js --outfile=../public/asset/euchre-live.development.js"
   },
   "dependencies": {
     "carbon-components": "^10.34.0",

@@ -1,19 +1,19 @@
 # .build.yml -- builds.sr.ht CI/CD
-image: debian/stable
-packages:
-    - cpanminus
+image: openbsd/latest
 sources:
     - https://git.sr.ht/~akarle/euchre-live
 environment:
     PERL5LIB: /home/build/perl5/lib/perl5
 tasks:
     - setup: |
+        ftp -o - https://cpanmin.us > cpanm
+        chmod +x cpanm
         cd euchre-live
-        cpanm --installdeps .
+        ../cpanm --installdeps .
     - test: |
         cd euchre-live
         make test
 triggers:
     - action: email
       condition: always
-      to: alex@karle.co
+      to: ci@alexkarle.com

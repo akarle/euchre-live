@@ -54,7 +54,7 @@ The release version is a subset of the repo, built into a separate directory
 for easier deployment.
 
 ```sh
-$ ./build.sh
+$ ./bin/build.sh
 ```
 
 ### Running the Server

@@ -2,14 +2,10 @@
 image: openbsd/latest
 sources:
     - https://git.sr.ht/~akarle/euchre-live
-environment:
-    PERL5LIB: /home/build/perl5/lib/perl5
+packages:
+    - p5-Mojolicious
+    - p5-Class-Tiny
 tasks:
-    - setup: |
-        ftp -o - https://cpanmin.us > cpanm
-        chmod +x cpanm
-        cd euchre-live
-        ../cpanm --installdeps .
     - test: |
         cd euchre-live
         make test

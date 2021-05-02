@@ -1,4 +1,5 @@
-import './app.scss';
+import "carbon-components/css/carbon-components.css";
+import './app.css';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Lobby from './components/Lobby';

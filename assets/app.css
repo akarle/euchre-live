@@ -1,10 +1,8 @@
-// this class is manipulated dynamically by the app,
-//  so keep it first, before any imports
+/* this class is manipulated dynamically by the app,
+  so keep it first, before any imports */
 .err__post {
     color: red;
 }
-
-@import 'carbon-components/scss/globals/scss/styles.scss';
 
 .lobby__outer {
     margin-top: 2rem;
@@ -36,13 +34,13 @@
     margin-top: 1rem;
     margin-left: 15px;
     width: 30rem;
-    .bx--btn--icon-only {
-        background-color: lightgreen;
-    }
+}
+.textRow .bx--btn--icon-only {
+    background-color: lightgreen;
 }
 
 .table__main {
-    // margin-top: 2rem;
+    /* margin-top: 2rem; */
     min-width: 950px;
     min-height: 650px;
 }
@@ -104,10 +102,11 @@
 }
 .start__game {
     display: flex;
-    .bx--dropdown__wrapper {
-        width: -webkit-fill-available;
-    }
 }
+.start__game .bx--dropdown__wrapper {
+    width: -webkit-fill-available;
+}
+
 .player__name {
     font-size: 1.6rem;
     font-weight: bold;
@@ -157,7 +156,7 @@
     max-width: 35vw;
 }
 .my__hand {
-    // background-color: cadetblue;
+    /* background-color: cadetblue; */
 
 }
 .cp__outer {
@@ -193,19 +192,21 @@
 .hid__card__row {
     display: flex;
 }
+
 .vert__stack {
     display: flex;
     flex-direction: column;
-    .hid__card__div {
-        height: 32px;
-    }
-    .hid__card__row {
-        flex-direction: column;
-    }
-    .hid__card {
-        transform: rotate(90deg);
-    }
 }
+.vert__stack .hid__card__div {
+        height: 32px;
+}
+.vert__stack .hid__card__row {
+        flex-direction: column;
+}
+.vert__stack .hid__card {
+        transform: rotate(90deg);
+}
+
 .right__stack {
     margin-left: 1.5vw;
 }
@@ -218,23 +219,24 @@
 }
 
 .tm__left {
-    // background-color: rgb(217, 249, 255);
-    .vert__stack {
+    /* background-color: rgb(217, 249, 255); */
+}
+.tm__left  .vert__stack {
         float: right;
         align-items: flex-end;
-    }
 }
+
 .tt__center {
-    // background-color: rgb(217, 249, 255);
+    /* background-color: rgb(217, 249, 255); */
     text-align: center;
 }
 
 .tm__right {
     height: 35vh;
-    // background-color: rgb(217, 249, 255);
+    /* background-color: rgb(217, 249, 255); */
 }
 .tb__center {
-    // background-color: rgb(217, 249, 255);
+    /* background-color: rgb(217, 249, 255); */
 }
 .trick__card {
     width: 80px;
@@ -294,9 +296,9 @@
 .tp1__stack {
     display: flex;
     flex-direction: column;
-    .bx--btn, .bx--dropdown__wrapper{
+}
+.tp1__stack   .bx--btn, .bx--dropdown__wrapper{
         margin-bottom: 3px;
-    }
 }
 
 .table__header {
@@ -316,11 +318,11 @@
 .tt__right {
     height: 20vh;
     justify-content: flex-end;
-    // background-color: lightsalmon;
+    /* background-color: lightsalmon; */
 }
 .tb__right {
     height: 35vh;
-    // background-color: lightsalmon;
+    /* background-color: lightsalmon; */
 }
 .tb__left {
     padding-left: 2rem;
@@ -351,10 +353,11 @@
 .tlist__list {
     height: 45vh;
     overflow: auto;
-    .bx--tile{
-        margin-bottom: 5px;
-    }
 }
+.tlist__list   .bx--tile{
+        margin-bottom: 5px;
+}
+
 .table__name {
     font-size: 1.2rem;
     font-weight: 600;
@@ -383,15 +386,17 @@
     font-weight: 600;
 }
 
-// .hd__left {
-//     background-color: rosybrown;
-// }
-// .hd__right {
-//     background-color: skyblue;
-// }
-// .tt__left {
-//     background-color: slategray;
-// }
-// .tm__center {
-//     background-color: lightpink;
-// }
+/*
+.hd__left {
+    background-color: rosybrown;
+}
+.hd__right {
+    background-color: skyblue;
+}
+.tt__left {
+    background-color: slategray;
+}
+.tm__center {
+    background-color: lightpink;
+}
+*/

@@ -30,8 +30,13 @@ class App extends React.Component {
             tableList: []
         };
         const host = window.location.host;
-        socketAddr = 'ws://' + host + '/play';
-        tablesAddr = 'http://' + host + '/tables';
+        if (window.location.protocol === 'https:') {
+            socketAddr = 'wss://' + host + '/play';
+            tablesAddr = 'https://' + host + '/tables';
+        } else {
+            socketAddr = 'ws://' + host + '/play';
+            tablesAddr = 'http://' + host + '/tables';
+        }
         if (tableDebug) { 
             client = new W3CWebSocket(socketAddr);
             client.onmessage = (event) => this.processResponse(event);

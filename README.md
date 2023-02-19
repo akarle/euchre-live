@@ -3,6 +3,12 @@ euchre.live
 
 [![builds.sr.ht status](https://builds.sr.ht/~akarle/euchre-live/commits/.build.yml.svg)](https://builds.sr.ht/~akarle/euchre-live/commits/.build.yml?)
 
+**Deprecation Notice:** As of 2023-02, this project is no longer maintained.
+I'm happy to look over any patches, but haven't put any effort into keeping
+up with dependency upgrades, testing newer OS versions for deployment, etc.
+
+--------------------------------------------
+
 For my family <3
 
 About

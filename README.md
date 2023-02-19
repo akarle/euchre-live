@@ -20,10 +20,6 @@ started to look at options to play online.
 
 Disappointed with the state of the online options, we decided to make our own.
 
-The production version is playable now at [euchre.live](https://euchre.live),
-but the code is all free under the MIT license, so feel free to hack it or host
-your own!
-
 Installation
 ------------
 

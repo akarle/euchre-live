@@ -7,12 +7,10 @@ euchre.live
 I'm happy to look over any patches, but haven't put any effort into keeping
 up with dependency upgrades, testing newer OS versions for deployment, etc.
 
---------------------------------------------
-
-For my family <3
-
 About
 -----
+For my family <3
+
 Euchre is a card game. It is our "family game", frequently played at family
 reunions due to its ability to both engage players and be a game you can sit
 back and chat over without thinking too much.

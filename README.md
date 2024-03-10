@@ -3,10 +3,14 @@ euchre.live
 
 [![builds.sr.ht status](https://builds.sr.ht/~akarle/euchre-live/commits/.build.yml.svg)](https://builds.sr.ht/~akarle/euchre-live/commits/.build.yml?)
 
-For my family <3
+**Deprecation Notice:** As of 2024-03, this project is no longer maintained.
+I'm happy to look over any patches, but haven't put any effort into keeping
+up with dependency upgrades, testing newer OS versions for deployment, etc.
 
 About
 -----
+For my family <3
+
 Euchre is a card game. It is our "family game", frequently played at family
 reunions due to its ability to both engage players and be a game you can sit
 back and chat over without thinking too much.
@@ -15,10 +19,6 @@ With the COVID-19 social-distancing, we're suddenly unable to play, so we
 started to look at options to play online.
 
 Disappointed with the state of the online options, we decided to make our own.
-
-The production version is playable now at [euchre.live](https://euchre.live),
-but the code is all free under the MIT license, so feel free to hack it or host
-your own!
 
 Installation
 ------------

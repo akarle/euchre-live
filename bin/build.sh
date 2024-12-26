@@ -9,7 +9,7 @@ die() {
 build() {
     out="$1"
     shift
-    ./node_modules/.bin/esbuild \
+    esbuild \
         --bundle \
         --loader:.js=jsx \
         "$@" \

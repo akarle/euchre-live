@@ -1,4 +1,4 @@
-euchre.live
+euchre-live
 ===========
 
 [![builds.sr.ht status](https://builds.sr.ht/~akarle/euchre-live/commits/.build.yml.svg)](https://builds.sr.ht/~akarle/euchre-live/commits/.build.yml?)

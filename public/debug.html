@@ -3,114 +3,13 @@
   <head>
     <meta charset="utf-8">
     <title>Euchre Live!!</title>
-    <style>
-       img.card {
-        width: 100px;
-       }
-    </style>
     <link href="suits/H.svg" rel="icon"  type="image/x-icon" />
+    <link rel="stylesheet" href="debug.css">
   </head>
 <body>
   <div id="content"></div>
-  <script>
-    var host = window.location.host
-    var ws = new WebSocket('ws://' + host + '/play');
-    var GAME_PHASE = ''
-    ws.onmessage = function (event) { 
-      msg = JSON.parse(event.data);
-      if (msg.msg_type !== 'pong') { console.log(msg) }
-
-      if (msg.msg_type === 'game_state') {
-        GAME_PHASE = msg.game.phase;
-        gameState = '<br>Game:          ' + msg.table_id + '<br>' +
-          'Players:       ' + msg.game.players + '<br>' +
-          'Spectators:    ' + msg.game.spectators + '<br>' +
-          'Game Phase:  '   + msg.game.phase + '<br>' +
-          'Player Turn:  '   + msg.game.turn + '<br>' +
-          'Dealer:  '   + msg.game.dealer + '<br>' +
-          'Trump:  '   + msg.game.trump + '<br>' +
-          'Tricks:  '   + msg.game.tricks + '<br>' +
-          'Hand Lengths:  '   + msg.game.hand_lengths + '<br>' +
-          'Score:  '   + msg.game.score + '<br>'
-
-        if (typeof msg.game.trump_nominee !== 'undefined') {
-          gameState += 'Trump Nominee: ' + '<img class="card" src="cards/' + msg.game.trump_nominee + '.svg"><br>'
-        }
-
-        document.getElementById('hand').innerHTML = 'HAND: <br>'
-        if (msg.hand) {
-          for (var i = 0; i < msg.hand.length; i++) {
-            var c = msg.hand[i]
-            document.getElementById('hand').innerHTML += '<img onclick="play(' + "'" +  c + "'" + ')" class="card" src="cards/' + c + '.svg">'
-          }
-        }
-
-        if (msg.game.table) {
-          document.getElementById('table').innerHTML = ''
-          for (var i = 0; i < msg.game.table.length; i++) {
-            var c = msg.game.table[i]
-            if (c === null) {
-              c = '2B' // show back
-            }
-            document.getElementById('table').innerHTML += '<img class="card" src="cards/' + c + '.svg">'
-          }
-        } else {
-          document.getElementById('table').innerHTML = 'No cards on table'
-        }
-        document.getElementById('game').innerHTML = gameState
-      } else if (msg.msg_type === 'error') {
-        document.getElementById('error').innerHTML += msg.msg + '<br>'
-      } else if (msg.msg_type === 'chat') {
-        document.getElementById('chat_box').innerHTML += msg.msg + '<br>'
-      //} else if (msg.msg_type === 'pong') {
-      //  console.log('pong!');
-      }
-    };
-
-    function joinGame() {
-      uname = document.getElementById('username').value;
-      gname = document.getElementById('gamename').value;
-      pass  = document.getElementById('password').value;
-      console.log('U: ' + uname + ' G: ' + gname);
-      ws.send(JSON.stringify({action:'join_table', player_name: uname, table: gname, password: pass}))
-    }
-    function sit() {
-      seat = document.getElementById('seat_no').value;
-      ws.send(JSON.stringify({action:'take_seat', seat: seat}))
-    }
-    function stand() {
-      ws.send(JSON.stringify({action:'stand_up'}))
-    }
-    function start_game() {
-      seat = document.getElementById('start_seat').value;
-      ws.send(JSON.stringify({action:'start_game', start_seat: seat}))
-    }
-    function vote(a) {
-      order_suit = document.getElementById('order_suit').value;
-      console.log(order_suit);
-      ws.send(JSON.stringify({action:'order', vote: order_suit, loner: a}))
-    }
-    function pass_kitty() {
-      ws.send(JSON.stringify({action:'order', vote: 'pass'}))
-    }
-    function play(card) {
-      if (GAME_PHASE === 'dealer_swap') {
-        ws.send(JSON.stringify({action:'dealer_swap', card: card}))
-      } else {
-        ws.send(JSON.stringify({action:'play_card', card: card}))
-      }
-    }
-    function chat() {
-      ws.send(JSON.stringify({action:'chat', msg: document.getElementById('chat').value }))
-      document.getElementById('chat').value = '';
-    }
-    function leaveGame() {
-      ws.send(JSON.stringify({action:'leave_table'}))
-    }
-
-    window.setInterval(() => { ws.send(JSON.stringify({action:'ping'})) }, 5000);
-  </script>
- <h1>Hello, World</h1>
+  <script src="debug.js"></script>
+ <h1>Euchre</h1>
 
  <label for="username">Username:</label>
  <input type="text" id="username">

@@ -1,0 +1,32 @@
+<h1>Euchre Lobby</h1>
+<% if (@$tables) { %>
+<p>
+Welcome! The following games are in session:
+</p>
+<ul>
+<% for my $t (@$tables) { %>
+<li>
+<%= $t->{name} %>
+</li>
+<% } %>
+</ul>
+<h2>Join Game</h2>
+<p>
+Pick a name from the list above to join an existing game
+or pick a new name to start a fresh game!
+</p>
+<% } else {%>
+<p>
+Welcome! No games are in session. Create one to start playing.
+<h2>Create Game</h2>
+</p>
+<% } %>
+<form action="/new-game">
+<label for="username">Your Name:</label>
+<input type="text" id="username">
+<br><br>
+<label for="gamename">Game Name:</label>
+<input type="text" id="gamename">
+<br><br>
+<input type="submit" value="Start">
+</form>

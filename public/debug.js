@@ -52,9 +52,9 @@ ws.onmessage = (event) => {
 };
 
 function joinGame() {
-  uname = getel('username').value;
+  uname = getel('username')?.value ?? "Anon";
   gname = getel('gamename').value;
-  pass  = getel('password').value;
+  pass  = getel('password')?.value ?? "";
   console.log('U: ' + uname + ' G: ' + gname);
   send({action:'join_table', player_name: uname, table: gname, password: pass})
 }

@@ -17,7 +17,12 @@ app->log->level('debug');
 
 get '/' => sub {
     my $c = shift;
-    $c->reply->static('index.html');
+    $c->render(template => 'index', tables => list_tables);
+};
+
+get '/new-game' => sub {
+    my $c = shift;
+    $c->render(template => 'new-game', tables => list_tables);
 };
 
 get '/game' => sub {

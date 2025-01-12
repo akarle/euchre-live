@@ -27,6 +27,23 @@ ws.onmessage = (event) => {
   if (msg.msg_type === 'game_state') {
     GAME_PHASE = msg.game.phase;
 
+    if (GAME_PHASE === 'lobby') {
+      getel('actions').innerHTML = `<button onclick="start_game()">Start Game</button>`
+    } else if (GAME_PHASE === 'vote') {
+      getel('actions').innerHTML = `
+        <button onclick="vote(0)">Order</button>
+        <select id="order_suit">
+          <option value="H">Hearts</option>
+          <option value="D">Diamonds</option>
+          <option value="S">Spades</option>
+          <option value="C">Clubs</option>
+        </select>
+        <button onclick="vote(1)">Loner</button>
+        <button onclick="pass_kitty()">Pass</button>`
+    } else {
+      getel('actions').innerHTML = "";
+    }
+
     for (let i = 0; i < 4; i++) {
       if (msg.game.players[i] === "Empty") {
 	getel(`s${i}`).innerHTML = "Sit";
@@ -183,20 +200,10 @@ window.setInterval(() => { send({action:'ping'}) }, 5000);
   <div id="s2-caller"></div>
   <div id="s2-tricks" class="tricks"></div>
   </div>
-  <div id="bot-right"></div>
+  <div id="actions"></div>
   </div>
   <br>
-  <button onclick="start_game()">Start Game</button>
   <br>
   <div id="hand"></div>
-  <button onclick="vote(0)">Order</button>
-  <select id="order_suit">
-    <option value="H">Hearts</option>
-    <option value="D">Diamonds</option>
-    <option value="S">Spades</option>
-    <option value="C">Clubs</option>
-  </select>
-  <button onclick="vote(1)">Loner</button>
-  <button onclick="pass_kitty()">Pass</button>
   <br><br>
   <div id="error" style="color:red"> </div>

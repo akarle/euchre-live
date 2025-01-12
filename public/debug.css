@@ -9,12 +9,13 @@
 }
 
 #hand {
-  max-width: 50%;
+  max-width: 80%;
+  text-align: center;
 }
 
 /* 5 cards in hand */
 #hand > img.card {
-  width: 18%;
+  width: 10%;
   padding: 1%;
 }
 

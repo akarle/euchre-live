@@ -81,7 +81,7 @@ ws.onmessage = (event) => {
     }
 
     if (msg.hand.length > 0) {
-      getel('hand').innerHTML = 'HAND: <br>'
+      getel('hand').innerHTML = '<p>Your Hand (click to play)</p>'
       for (let i = 0; i < msg.hand.length; i++) {
         const c = msg.hand[i]
         getel('hand').innerHTML += '<img onclick="play(' + "'" +  c + "'" + ')" class="card" src="cards/' + c + '.svg">'

@@ -22,7 +22,12 @@ get '/' => sub {
 
 get '/new-game' => sub {
     my $c = shift;
-    $c->render(template => 'new-game', tables => list_tables);
+    my $params = $c->req->url->query;
+    $c->render(
+	template => 'new-game',
+	username => $params->param("username"),
+	gamename => $params->param("gamename"),
+    );
 };
 
 get '/game' => sub {

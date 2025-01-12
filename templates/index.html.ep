@@ -23,10 +23,10 @@ Welcome! No games are in session. Create one to start playing.
 <% } %>
 <form action="/new-game">
 <label for="username">Your Name:</label>
-<input type="text" id="username">
+<input type="text" id="username" name="username">
 <br><br>
 <label for="gamename">Game Name:</label>
-<input type="text" id="gamename">
+<input type="text" id="gamename" name="gamename">
 <br><br>
 <input type="submit" value="Start">
 </form>

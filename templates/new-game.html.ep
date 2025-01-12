@@ -1,1 +1,146 @@
-Hello New Game
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Euchre Live!</title>
+<link href="suits/H.svg" rel="icon"  type="image/x-icon" />
+<link rel="stylesheet" href="debug.css">
+</head>
+<body>
+<script>
+let GAME_PHASE = '';
+const player_name = "<%= $username %>";
+const table = "<%= $gamename %>";
+
+const ws = new WebSocket(`ws://${window.location.host}/play`);
+const send = (payload) => ws.send(JSON.stringify(payload));
+ws.onopen = () => send({action:'join_table', player_name, table, password: ""});
+
+const getel = (id) => document.getElementById(id);
+ws.onmessage = (event) => { 
+  msg = JSON.parse(event.data);
+  if (msg.msg_type !== 'pong') { console.log(msg) }
+
+  if (msg.msg_type === 'game_state') {
+    GAME_PHASE = msg.game.phase;
+    gameState = '<br>Game:          ' + msg.table_id + '<br>' +
+      'Players:       ' + msg.game.players + '<br>' +
+      'Spectators:    ' + msg.game.spectators + '<br>' +
+      'Game Phase:  '   + msg.game.phase + '<br>' +
+      'Player Turn:  '   + msg.game.turn + '<br>' +
+      'Dealer:  '   + msg.game.dealer + '<br>' +
+      'Trump:  '   + msg.game.trump + '<br>' +
+      'Tricks:  '   + msg.game.tricks + '<br>' +
+      'Hand Lengths:  '   + msg.game.hand_lengths + '<br>' +
+      'Score:  '   + msg.game.score + '<br>'
+
+    if (typeof msg.game.trump_nominee !== 'undefined') {
+      gameState += 'Trump Nominee: ' + '<img class="card" src="cards/' + msg.game.trump_nominee + '.svg"><br>'
+    }
+
+    getel('hand').innerHTML = 'HAND: <br>'
+    if (msg.hand) {
+      for (let i = 0; i < msg.hand.length; i++) {
+        const c = msg.hand[i]
+        getel('hand').innerHTML += '<img onclick="play(' + "'" +  c + "'" + ')" class="card" src="cards/' + c + '.svg">'
+      }
+    }
+
+    if (msg.game.table) {
+      getel('table').innerHTML = ''
+      for (let i = 0; i < msg.game.table.length; i++) {
+        let c = msg.game.table[i]
+        if (c === null) {
+          c = '2B' // show back
+        }
+        getel('table').innerHTML += '<img class="card" src="cards/' + c + '.svg">'
+      }
+    } else {
+      getel('table').innerHTML = 'No cards on table'
+    }
+    getel('game').innerHTML = gameState
+  } else if (msg.msg_type === 'error') {
+    getel('error').innerHTML += msg.msg + '<br>'
+  } else if (msg.msg_type === 'chat') {
+    getel('chat_box').innerHTML += msg.msg + '<br>'
+  }
+};
+
+function sit() {
+  seat = getel('seat_no').value;
+  send({action:'take_seat', seat: seat})
+}
+function stand() {
+  send({action:'stand_up'})
+}
+function start_game() {
+  seat = getel('start_seat').value;
+  send({action:'start_game', start_seat: seat})
+}
+function vote(a) {
+  order_suit = getel('order_suit').value;
+  console.log(order_suit);
+  send({action:'order', vote: order_suit, loner: a})
+}
+function pass_kitty() {
+  send({action:'order', vote: 'pass'})
+}
+function play(card) {
+  if (GAME_PHASE === 'dealer_swap') {
+    send({action:'dealer_swap', card: card})
+  } else {
+    send({action:'play_card', card: card})
+  }
+}
+function chat() {
+  send({action:'chat', msg: getel('chat').value })
+  getel('chat').value = '';
+}
+function leaveGame() {
+  send({action:'leave_table'})
+}
+
+window.setInterval(() => { send({action:'ping'}) }, 5000);
+</script>
+  <noscript>
+  <p>
+  Unfortunately, we don't have a JavaScript free interface.
+  Please use a browser supporting ES6 or newer.
+  </p>
+  </noscript>
+
+  <a href="/">Leave Game</a>
+  <br><br>
+  <label for="seat_no">Seat:</label>
+  <input type="number" id="seat_no">
+  <button onclick="sit()">Sit</button>
+  <button onclick="stand()">Stand</button>
+  <br>
+  <button onclick="start_game()">Start Game</button>
+  <label for="start_seat">Start Seat:</label>
+  <input type="number" id="start_seat">
+  <br>
+ 
+  <br><br>
+  <div id="game">Not in a game</div>
+  <br><br>
+  <div id="table">No cards on table</div>
+  <br> <br>
+  <div id="hand">No cards in hand</div>
+  <br>
+  <button onclick="vote(0)">Order</button>
+  <select id="order_suit">
+    <option value="H">Hearts</option>
+    <option value="D">Diamonds</option>
+    <option value="S">Spades</option>
+    <option value="C">Clubs</option>
+  </select>
+  <button onclick="vote(1)">Loner</button>
+  <button onclick="pass_kitty()">Pass</button>
+  <br><br>
+  <div id="error" style="color:red"> </div>
+  <br><br>
+  <label for="chat">Chat:</label>
+  <input type="text" id="chat">
+  <button onclick="chat()">Send</button>
+  <div id="chat_box"></div>

@@ -38,15 +38,20 @@ ws.onmessage = (event) => {
 	getel(`s${i}`).innerHTML = "Taken";
       }
       getel(`s${i}-name`).innerHTML = msg.game.players[i];
-      if (msg.game.dealer && i === msg.game.dealer) {
+      if (msg.game.dealer === i) {
         getel(`s${i}-dealer`).innerHTML = "Dealer"
       } else {
         getel(`s${i}-dealer`).innerHTML = ""
       }
-      if (msg.game.caller && i === msg.game.caller) {
+      if (msg.game.caller === i) {
         getel(`s${i}-caller`).innerHTML = "Caller"
       } else {
         getel(`s${i}-caller`).innerHTML = ""
+      }
+      if (msg.game.turn === i) {
+        getel(`seat-${i}`).style["background"] = "#99ff99";
+      } else {
+        getel(`seat-${i}`).style["background"] = "none";
       }
     }
 
@@ -155,12 +160,12 @@ window.setInterval(() => { send({action:'ping'}) }, 5000);
   <div id="s0-tricks" class="tricks"></div>
   </div>
   <div id="score">score</div>
-  <div id="seat-2">
-  <p id="s2-name">Empty</p>
-  <button id="s2" onclick="sit(2)">Sit</button>
-  <div id="s2-dealer"></div>
-  <div id="s2-caller"></div>
-  <div id="s2-tricks" class="tricks"></div>
+  <div id="seat-3">
+  <p id="s3-name">Empty</p>
+  <button id="s3" onclick="sit(3)">Sit</button>
+  <div id="s3-dealer"></div>
+  <div id="s3-caller"></div>
+  <div id="s3-tricks" class="tricks"></div>
   </div>
   <div id="play">cards</div>
   <div id="seat-1">
@@ -171,12 +176,12 @@ window.setInterval(() => { send({action:'ping'}) }, 5000);
   <div id="s1-tricks" class="tricks"></div>
   </div>
   <div id="trumpnom">trump nom</div>
-  <div id="seat-3">
-  <p id="s3-name">Empty</p>
-  <button id="s3" onclick="sit(3)">Sit</button>
-  <div id="s3-dealer"></div>
-  <div id="s3-caller"></div>
-  <div id="s3-tricks" class="tricks"></div>
+  <div id="seat-2">
+  <p id="s2-name">Empty</p>
+  <button id="s2" onclick="sit(2)">Sit</button>
+  <div id="s2-dealer"></div>
+  <div id="s2-caller"></div>
+  <div id="s2-tricks" class="tricks"></div>
   </div>
   <div id="bot-right"></div>
   </div>

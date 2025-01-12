@@ -1,5 +1,20 @@
-img.card {
+/* 4 cards in hand */
+#play > img.card {
   width: 23%;
+  padding: 1%;
+}
+
+#trumpnom > img.card {
+  width: 40%;
+}
+
+#hand {
+  max-width: 50%;
+}
+
+/* 5 cards in hand */
+#hand > img.card {
+  width: 18%;
   padding: 1%;
 }
 
@@ -26,13 +41,13 @@ img.card {
   padding: 20px;
 }
 
-#seat-0, #seat-3 {
+#seat-0, #seat-2 {
   text-align: center;
 }
 
 #seat-1 {
   text-align: left;
 }
-#seat-2 {
+#seat-3 {
   text-align: right;
 }

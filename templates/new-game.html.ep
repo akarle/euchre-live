@@ -25,16 +25,6 @@ ws.onmessage = (event) => {
   if (msg.msg_type === 'game_state') {
     GAME_PHASE = msg.game.phase;
 
-    gameState = '<br>Game:          ' + msg.table_id + '<br>' +
-      'Spectators:    ' + msg.game.spectators + '<br>' +
-      'Game Phase:  '   + msg.game.phase + '<br>' +
-      'Player Turn:  '   + msg.game.turn + '<br>' +
-      'Dealer:  '   + msg.game.dealer + '<br>' +
-      'Trump:  '   + msg.game.trump + '<br>' +
-      'Tricks:  '   + msg.game.tricks + '<br>' +
-      'Hand Lengths:  '   + msg.game.hand_lengths + '<br>' +
-      'Score:  '   + msg.game.score + '<br>'
-
     for (let i = 0; i < 4; i++) {
       if (msg.game.players[i] !== "Empty" && SEAT !== i) {
 	getel(`s${i}`).disabled = true;
@@ -44,11 +34,11 @@ ws.onmessage = (event) => {
     }
 
     if (typeof msg.game.trump_nominee !== 'undefined') {
-      gameState += 'Trump Nominee: ' + '<img class="card" src="cards/' + msg.game.trump_nominee + '.svg"><br>'
+      getel('trumpnom').innerHTML = 'Trump Nominee: ' + '<img class="card" src="cards/' + msg.game.trump_nominee + '.svg"><br>'
     }
 
-    getel('hand').innerHTML = 'HAND: <br>'
     if (msg.hand) {
+      getel('hand').innerHTML = 'HAND: <br>'
       for (let i = 0; i < msg.hand.length; i++) {
         const c = msg.hand[i]
         getel('hand').innerHTML += '<img onclick="play(' + "'" +  c + "'" + ')" class="card" src="cards/' + c + '.svg">'
@@ -56,18 +46,17 @@ ws.onmessage = (event) => {
     }
 
     if (msg.game.table) {
-      getel('table').innerHTML = ''
+      getel('play').innerHTML = ''
       for (let i = 0; i < msg.game.table.length; i++) {
         let c = msg.game.table[i]
         if (c === null) {
           c = '2B' // show back
         }
-        getel('table').innerHTML += '<img class="card" src="cards/' + c + '.svg">'
+        getel('play').innerHTML += '<img class="card" src="cards/' + c + '.svg">'
       }
     } else {
-      getel('table').innerHTML = 'No cards on table'
+      getel('play').innerHTML = 'No cards on table'
     }
-    getel('game').innerHTML = gameState
   } else if (msg.msg_type === 'error') {
     getel('error').innerHTML += msg.msg + '<br>'
   } else if (msg.msg_type === 'chat') {
@@ -132,15 +121,16 @@ window.setInterval(() => { send({action:'ping'}) }, 5000);
   </p>
   </noscript>
 
-  <a href="/">Leave Game</a>
   <br><br>
   <div id="gtable">
-  <div id="top-left">nav</div>
+  <div id="top nav">
+  <a href="/">Leave Game</a>
+  </div>
   <div id="seat-0">
   <p id="s0-name">Empty</p>
   <button id="s0" onclick="sit(0)">Sit</button>
   </div>
-  <div id="top-right">score</div>
+  <div id="score">score</div>
   <div id="seat-1">
   <p id="s1-name">Empty</p>
   <button id="s1" onclick="sit(1)">Sit</button>
@@ -150,24 +140,17 @@ window.setInterval(() => { send({action:'ping'}) }, 5000);
   <p id="s2-name">Empty</p>
   <button id="s2" onclick="sit(2)">Sit</button>
   </div>
-  <div id="bot-left">game state</div>
+  <div id="trumpnom">trump nom</div>
   <div id="seat-3">
   <p id="s3-name">Empty</p>
   <button id="s3" onclick="sit(3)">Sit</button>
   </div>
-  <div id="bot-right">chat</div>
+  <div id="bot-right"></div>
   </div>
   <br>
   <button onclick="start_game()">Start Game</button>
   <br>
- 
-  <br><br>
-  <div id="game">Not in a game</div>
-  <br><br>
-  <div id="table">No cards on table</div>
-  <br> <br>
-  <div id="hand">No cards in hand</div>
-  <br>
+  <div id="hand"></div>
   <button onclick="vote(0)">Order</button>
   <select id="order_suit">
     <option value="H">Hearts</option>
@@ -179,8 +162,3 @@ window.setInterval(() => { send({action:'ping'}) }, 5000);
   <button onclick="pass_kitty()">Pass</button>
   <br><br>
   <div id="error" style="color:red"> </div>
-  <br><br>
-  <label for="chat">Chat:</label>
-  <input type="text" id="chat">
-  <button onclick="chat()">Send</button>
-  <div id="chat_box"></div>

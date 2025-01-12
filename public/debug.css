@@ -1,14 +1,26 @@
 img.card {
-  width: 100px;
+  width: 23%;
+  padding: 1%;
 }
 
 #gtable {
   display: grid;
-  grid-template-columns: auto auto auto;
+  grid-template-columns: 25% 50% 25%;
   max-width: 50%;
 }
 
 #gtable > div {
   border: 1px solid black;
   padding: 20px;
+}
+
+#seat-0, #seat-3 {
+  text-align: center;
+}
+
+#seat-1 {
+  text-align: right;
+}
+#seat-2 {
+  text-align: left;
 }

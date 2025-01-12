@@ -3,10 +3,22 @@ img.card {
   padding: 1%;
 }
 
+.tricks > img.card {
+  width: 10%;
+  padding: 1%;
+}
+
+.tricks > span {
+  border: 1px solid black;
+  width: 10%;
+  padding: 1%;
+  display: inline-block;
+}
+
 #gtable {
   display: grid;
   grid-template-columns: 25% 50% 25%;
-  max-width: 50%;
+  max-width: 80%;
 }
 
 #gtable > div {
@@ -19,8 +31,8 @@ img.card {
 }
 
 #seat-1 {
-  text-align: right;
+  text-align: left;
 }
 #seat-2 {
-  text-align: left;
+  text-align: right;
 }

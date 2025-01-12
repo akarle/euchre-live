@@ -15,9 +15,11 @@ const table = "<%= $gamename %>";
 
 const ws = new WebSocket(`ws://${window.location.host}/play`);
 const send = (payload) => ws.send(JSON.stringify(payload));
-ws.onopen = () => send({action:'join_table', player_name, table, password: ""});
-
 const getel = (id) => document.getElementById(id);
+
+ws.onopen = () => send({action:'join_table', player_name, table, password: ""});
+ws.onclose = () => getel('error').innerHTML += 'WARNING: connection closed. Refresh page to reconnect!<br>';
+
 ws.onmessage = (event) => { 
   msg = JSON.parse(event.data);
   if (msg.msg_type !== 'pong') { console.log(msg) }
@@ -26,18 +28,37 @@ ws.onmessage = (event) => {
     GAME_PHASE = msg.game.phase;
 
     for (let i = 0; i < 4; i++) {
-      if (msg.game.players[i] !== "Empty" && SEAT !== i) {
+      if (msg.game.players[i] === "Empty") {
+	getel(`s${i}`).innerHTML = "Sit";
+	if (SEAT === -1) {
+	  getel(`s${i}`).disabled = false;
+	}
+      } else if (SEAT !== i) {
 	getel(`s${i}`).disabled = true;
 	getel(`s${i}`).innerHTML = "Taken";
       }
       getel(`s${i}-name`).innerHTML = msg.game.players[i];
+      if (msg.game.dealer && i === msg.game.dealer) {
+        getel(`s${i}-dealer`).innerHTML = "Dealer"
+      } else {
+        getel(`s${i}-dealer`).innerHTML = ""
+      }
+      if (msg.game.caller && i === msg.game.caller) {
+        getel(`s${i}-caller`).innerHTML = "Caller"
+      } else {
+        getel(`s${i}-caller`).innerHTML = ""
+      }
+    }
+
+    if (msg.game.dealer) {
+      getel(`s${msg.game.dealer}-dealer`).innerHTML = "Dealer"
     }
 
     if (typeof msg.game.trump_nominee !== 'undefined') {
       getel('trumpnom').innerHTML = 'Trump Nominee: ' + '<img class="card" src="cards/' + msg.game.trump_nominee + '.svg"><br>'
     }
 
-    if (msg.hand) {
+    if (msg.hand.length > 0) {
       getel('hand').innerHTML = 'HAND: <br>'
       for (let i = 0; i < msg.hand.length; i++) {
         const c = msg.hand[i]
@@ -129,21 +150,33 @@ window.setInterval(() => { send({action:'ping'}) }, 5000);
   <div id="seat-0">
   <p id="s0-name">Empty</p>
   <button id="s0" onclick="sit(0)">Sit</button>
+  <div id="s0-dealer"></div>
+  <div id="s0-caller"></div>
+  <div id="s0-tricks" class="tricks"></div>
   </div>
   <div id="score">score</div>
-  <div id="seat-1">
-  <p id="s1-name">Empty</p>
-  <button id="s1" onclick="sit(1)">Sit</button>
-  </div>
-  <div id="play">cards</div>
   <div id="seat-2">
   <p id="s2-name">Empty</p>
   <button id="s2" onclick="sit(2)">Sit</button>
+  <div id="s2-dealer"></div>
+  <div id="s2-caller"></div>
+  <div id="s2-tricks" class="tricks"></div>
+  </div>
+  <div id="play">cards</div>
+  <div id="seat-1">
+  <p id="s1-name">Empty</p>
+  <button id="s1" onclick="sit(1)">Sit</button>
+  <div id="s1-dealer"></div>
+  <div id="s1-caller"></div>
+  <div id="s1-tricks" class="tricks"></div>
   </div>
   <div id="trumpnom">trump nom</div>
   <div id="seat-3">
   <p id="s3-name">Empty</p>
   <button id="s3" onclick="sit(3)">Sit</button>
+  <div id="s3-dealer"></div>
+  <div id="s3-caller"></div>
+  <div id="s3-tricks" class="tricks"></div>
   </div>
   <div id="bot-right"></div>
   </div>

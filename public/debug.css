@@ -1,3 +1,14 @@
 img.card {
   width: 100px;
 }
+
+#gtable {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  max-width: 50%;
+}
+
+#gtable > div {
+  border: 1px solid black;
+  padding: 20px;
+}

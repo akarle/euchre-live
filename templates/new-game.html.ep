@@ -9,6 +9,7 @@
 <body>
 <script>
 let GAME_PHASE = '';
+let SEAT = -1;
 const player_name = "<%= $username %>";
 const table = "<%= $gamename %>";
 
@@ -23,8 +24,8 @@ ws.onmessage = (event) => {
 
   if (msg.msg_type === 'game_state') {
     GAME_PHASE = msg.game.phase;
+
     gameState = '<br>Game:          ' + msg.table_id + '<br>' +
-      'Players:       ' + msg.game.players + '<br>' +
       'Spectators:    ' + msg.game.spectators + '<br>' +
       'Game Phase:  '   + msg.game.phase + '<br>' +
       'Player Turn:  '   + msg.game.turn + '<br>' +
@@ -33,6 +34,14 @@ ws.onmessage = (event) => {
       'Tricks:  '   + msg.game.tricks + '<br>' +
       'Hand Lengths:  '   + msg.game.hand_lengths + '<br>' +
       'Score:  '   + msg.game.score + '<br>'
+
+    for (let i = 0; i < 4; i++) {
+      if (msg.game.players[i] !== "Empty" && SEAT !== i) {
+	getel(`s${i}`).disabled = true;
+	getel(`s${i}`).innerHTML = "Taken";
+      }
+      getel(`s${i}-name`).innerHTML = msg.game.players[i];
+    }
 
     if (typeof msg.game.trump_nominee !== 'undefined') {
       gameState += 'Trump Nominee: ' + '<img class="card" src="cards/' + msg.game.trump_nominee + '.svg"><br>'
@@ -66,16 +75,30 @@ ws.onmessage = (event) => {
   }
 };
 
-function sit() {
-  seat = getel('seat_no').value;
-  send({action:'take_seat', seat: seat})
+function sit(seat) {
+  SEAT = seat;
+  getel(`s${seat}`).innerHTML = "Stand";
+  getel(`s${seat}`).onclick = () => stand(seat);
+  for (let i = 0; i < 4; i++) {
+    if (i !== seat) {
+      getel(`s${i}`).disabled = true;
+    }
+  }
+  send({action:'take_seat', seat })
 }
-function stand() {
+function stand(seat) {
+  SEAT = -1;
+  getel(`s${seat}`).innerHTML = "Sit";
+  getel(`s${seat}`).onclick = () => sit(seat);
+  for (let i = 0; i < 4; i++) {
+    if (i !== seat) {
+      getel(`s${i}`).disabled = false;
+    }
+  }
   send({action:'stand_up'})
 }
 function start_game() {
-  seat = getel('start_seat').value;
-  send({action:'start_game', start_seat: seat})
+  send({action:'start_game', start_seat: Math.floor(Math.random() * 4) })
 }
 function vote(a) {
   order_suit = getel('order_suit').value;
@@ -111,14 +134,31 @@ window.setInterval(() => { send({action:'ping'}) }, 5000);
 
   <a href="/">Leave Game</a>
   <br><br>
-  <label for="seat_no">Seat:</label>
-  <input type="number" id="seat_no">
-  <button onclick="sit()">Sit</button>
-  <button onclick="stand()">Stand</button>
+  <div id="gtable">
+  <div id="top-left">nav</div>
+  <div id="seat-0">
+  <p id="s0-name">Empty</p>
+  <button id="s0" onclick="sit(0)">Sit</button>
+  </div>
+  <div id="top-right">score</div>
+  <div id="seat-1">
+  <p id="s1-name">Empty</p>
+  <button id="s1" onclick="sit(1)">Sit</button>
+  </div>
+  <div id="play">cards</div>
+  <div id="seat-2">
+  <p id="s2-name">Empty</p>
+  <button id="s2" onclick="sit(2)">Sit</button>
+  </div>
+  <div id="bot-left">game state</div>
+  <div id="seat-3">
+  <p id="s3-name">Empty</p>
+  <button id="s3" onclick="sit(3)">Sit</button>
+  </div>
+  <div id="bot-right">chat</div>
+  </div>
   <br>
   <button onclick="start_game()">Start Game</button>
-  <label for="start_seat">Start Seat:</label>
-  <input type="number" id="start_seat">
   <br>
  
   <br><br>

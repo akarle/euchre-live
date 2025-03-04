@@ -255,8 +255,9 @@ export default class CardTable extends React.Component {
         if (msg.game.players) {
             const plAr = msg.game.players;
             let mySeat = plAr.findIndex( x => x == name );
-            console.log('initMySeat.mySeat=', mySeat);
-            if (newSpec && msg.game.phase != 'lobby'){
+            let anyEmpty = plAr.includes('Empty');
+            if (newSpec && !anyEmpty){
+                // console.log('all seats taken, initMySeat.newSpec, mySeat=3');
                 mySeat = 3;
             };
             this.setState({

@@ -33,8 +33,8 @@ release: build test
 	git show HEAD --pretty=full -s |\
 	    sed 's/\(Author\|Commit\): \([^<]\+\).*/\1: \2<redacted>/' > build/public/version.txt
 	rsync -av --delete --rsh="ssh -o StrictHostKeyChecking=no" \
-	    build/ _euchre@alexkarle.com:prod-el/
-	ssh -t -o StrictHostKeyChecking=no alexkarle.com \
+	    build/ _euchre@euchre.alexkarle.com:prod-el/
+	ssh -t -o StrictHostKeyChecking=no _euchre@euchre.alexkarle.com \
 	    doas rcctl restart euchre
 
 .PHONY: clean
